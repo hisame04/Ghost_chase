@@ -807,6 +807,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
+  gameManager: {fileID: 106355398}
 --- !u!114 &603909960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -881,7 +882,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01e76b7548eac46b7b90e8056bd7d6f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
+  gameManager: {fileID: 106355398}
   isTagger: 0
 --- !u!1 &793695605 stripped
 GameObject:
