@@ -7,6 +7,11 @@ public class UIController : MonoBehaviour
 {
     [SerializeField] Color taggerColor = Color.red;
     [SerializeField] Color playerColor = Color.blue;
+    [SerializeField] TextMeshProUGUI timeCountText;
+    [SerializeField] GameObject isTaggerText;
+    [SerializeField] GameObject touchButton;
+    [SerializeField] GameObject gameResultPanel;
+    [SerializeField] TextMeshProUGUI gameResultText;
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
     [SerializeField] int outLineShaderNum = 1;
@@ -57,5 +62,33 @@ public class UIController : MonoBehaviour
     void ChangeTmp(TextMeshPro tmp, Color color)
     {
         tmp.color = color;
+    }
+
+    public void SetTimeCountText(float timeCount)
+    {
+        string timeText = timeCount !=0 ? timeCount.ToString(("F2")) : "0";
+        timeCountText.text =timeText;
+    }
+
+    public void SetTaggerUI(bool isTagger)
+    {
+        if (isTagger)
+        {
+            isTaggerText.SetActive(true);
+            touchButton.SetActive(true);
+        }
+        else
+        {
+            isTaggerText.SetActive(false);
+            touchButton.SetActive(false);
+        }
+    }
+
+    public void SetGameResultUI(bool isTagger)
+    {
+        string gameResult = isTagger ? "Lose..." : "Win!";
+        gameResultText.text = gameResult;
+
+        gameResultPanel.SetActive(true);
     }
 }
