@@ -5,8 +5,10 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] float limitTime = 60f;
+    [SerializeField] float waitStartTime = 3f;
     [SerializeField] float timeCount;
     public bool onGame;
+    public bool onWait;
     [SerializeField] int playerSelf = 0;
     [SerializeField] int firstTagger = 1;
     [SerializeField] int whoTagger;
@@ -16,31 +18,49 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         whoTagger = firstTagger;
-        timeCount = limitTime;
-        onGame = true;
+        timeCount = waitStartTime;
+        onWait = true;
+        onGame = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (onGame)
+        if (onWait)
         {
-            if (timeCount < 0)
+            if (timeCount < -1)
             {
-                onGame = false;
+                onWait = false;
+                onGame = true;
+                timeCount = limitTime;
+                uIController.SetOnGameUI();
             }
-            
-            timeCount -= Time.deltaTime;
-            uIController.SetPlayerUI(players);
-            uIController.SetTimeCountText(timeCount);
-            PlayerSelfIsTagger();
 
-            CheckTaggerError();
+            timeCount -= Time.deltaTime;
+            uIController.SetWaitTimeText(timeCount);
         }
         else
         {
-            uIController.SetGameResultUI(PlayerSelfIsTagger());
+            if (onGame)
+            {
+                if (timeCount < 0)
+                {
+                    onGame = false;
+                }
+
+                timeCount -= Time.deltaTime;
+                uIController.SetPlayerUI(players);
+                uIController.SetTimeCountText(timeCount);
+                PlayerSelfIsTagger();
+
+                CheckTaggerError();
+            }
+            else
+            {
+                uIController.SetGameResultUI(PlayerSelfIsTagger());
+            }
         }
+
     }
 
     bool PlayerSelfIsTagger()

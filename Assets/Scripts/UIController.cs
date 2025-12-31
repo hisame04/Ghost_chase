@@ -2,15 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class UIController : MonoBehaviour
 {
     [SerializeField] Color taggerColor = Color.red;
     [SerializeField] Color playerColor = Color.blue;
     [SerializeField] TextMeshProUGUI timeCountText;
+    [SerializeField] TextMeshProUGUI waitTimeText;
     [SerializeField] GameObject isTaggerText;
     [SerializeField] GameObject touchButton;
-    [SerializeField] GameObject gameResultPanel;
+    [SerializeField] GameObject gameResultUIPanel;
+    [SerializeField] GameObject waitGameUIPanel;
+    [SerializeField] GameObject onGameUIPanel;
     [SerializeField] TextMeshProUGUI gameResultText;
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
@@ -18,7 +23,9 @@ public class UIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        gameResultUIPanel.SetActive(false);
+        waitGameUIPanel.SetActive(true);
+        onGameUIPanel.SetActive(false);
     }
 
     // Update is called once per frame
@@ -63,11 +70,29 @@ public class UIController : MonoBehaviour
     {
         tmp.color = color;
     }
-
+    //制限時間のUIテキスト変更
     public void SetTimeCountText(float timeCount)
     {
-        string timeText = timeCount !=0 ? timeCount.ToString(("F2")) : "0";
+        string timeText = timeCount >=0 ? timeCount.ToString(("F0")) : "0";
         timeCountText.text =timeText;
+    }
+    //開始待ち時間のUIテキスト変更
+    public void SetWaitTimeText(float timeCount)
+    {
+        // ゲーム開始時にマウスカーソルを非表示にする
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;
+
+        string timeText = timeCount >= 0.5 ? timeCount.ToString(("F0")) : "Start!";
+        waitTimeText.text =timeText;
+    }
+    //ゲーム開始時のUI切り替え
+    public void SetOnGameUI()
+    {
+        //待機時間のUIを非表示にする
+        waitGameUIPanel.SetActive(false);
+        //試合中のUIを表示する
+        onGameUIPanel.SetActive(true);
     }
 
     public void SetTaggerUI(bool isTagger)
@@ -89,6 +114,15 @@ public class UIController : MonoBehaviour
         string gameResult = isTagger ? "Lose..." : "Win!";
         gameResultText.text = gameResult;
 
-        gameResultPanel.SetActive(true);
+        gameResultUIPanel.SetActive(true);
+
+        //マウスカーソルを表示する
+        Cursor.visible = true;
+    }
+
+    public void GoToNextGame()
+    {
+        Debug.Log("Go To TitleScene");
+        SceneManager.LoadScene("TitleScene");
     }
 }

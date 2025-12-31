@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a506277cf59af4e808270db21b2328dd, type: 3}
+  m_Name: Avatar Data
+  m_EditorClassIdentifier: 
+  baseAvatars:
+  - {fileID: 9111775723192803654, guid: 75cc20375912542e192186417958e702, type: 3}
+  - {fileID: 6442288227394696022, guid: 7563a93f3461544a8b5d13bc07348064, type: 3}
+  - {fileID: 6133192532141879136, guid: 61730b1101c8c406cbbea249699a5c2e, type: 3}
+  playerAvatars:
+  - {fileID: 3418778431940447252, guid: ab5ccde721d5540d1b0ae9b540a9391d, type: 3}
+  - {fileID: 349546781507051545, guid: 39ead20f804864bac9081e29a5e138ff, type: 3}
+  - {fileID: 4275103788663954215, guid: 5bf5eafe6676f4330a2e44ae71096e94, type: 3}
+  enemyAvatars:
+  - {fileID: 3418778431940447252, guid: e67f4956c8590452085d14d17bc239c5, type: 3}
+  - {fileID: 349546781507051545, guid: daa7aecdef7cd45eca91912e2176ae63, type: 3}
+  - {fileID: 4275103788663954215, guid: c9d07a2b8bb3c47048f5d7b1c7409c0b, type: 3}
+  baseColors:
+  - {r: 1, g: 0.6933962, b: 0.86998355, a: 0.50980395}
+  - {r: 1, g: 0.59802747, b: 0.48584908, a: 0.74509805}
+  - {r: 1, g: 0.947653, b: 0.5707547, a: 0.30588236}
+  - {r: 0.6522908, g: 1, b: 0.5801887, a: 0.50980395}
+  - {r: 0.6839622, g: 0.8563938, b: 1, a: 0.50980395}
+  - {r: 0.6125906, g: 0.53333336, b: 1, a: 0.68235296}
+  emissionColors:
+  - {r: 0.7490196, g: 0.05882353, b: 0.5529412, a: 1}
+  - {r: 0.8113208, g: 0.17332762, b: 0, a: 1}
+  - {r: 0.8679245, g: 0.68690187, b: 0.10234957, a: 1}
+  - {r: 0.15504852, g: 0.7264151, b: 0.030838363, a: 1}
+  - {r: 0, g: 0.5052069, b: 0.9245283, a: 1}
+  - {r: 0.0586188, g: 0, b: 0.6037736, a: 1}
+  emissionIntensity:
+  - 1.4
+  - 0.4
+  - 0.6
+  - 0.1
+  - 0.4
+  - 1
