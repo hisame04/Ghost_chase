@@ -7,47 +7,85 @@ public class SpawnPlayerController : MonoBehaviour
     [SerializeField] GameManager gameManager;
     [SerializeField] AvatarData avatarData;
     [SerializeField] Vector3 spawnPosition;
-    [SerializeField] int tagPlayerIdx;
+
     void Awake()
     {
-        SpawnMyAvatar();
+        SpawnMyAvatar();//自身のアバターの生成
+        SpawnEnemyAvatar();//相手のアバターの生成
     }
 
+    /*自身のアバターを作成するメソッド*/
     void SpawnMyAvatar()
     {
-        int myAvatarIndex = GameSessionData.Instance.myAvatarIndex;
-        int myColorIndex =GameSessionData.Instance.myColorIndex;
+        int myIDNum = GameSessionData.Instance.myIDNum;
+        var allPlayers = GameSessionData.Instance.AllPlayers;
 
-        GameObject myAvatar=AvatarSpawn(myAvatarIndex,spawnPosition);
-        AvatarColorSet(myColorIndex,myAvatar);
+        int myAvatarIndex = GameSessionData.Instance.myAvatarIndex;
+        GameObject mySpawnObject = MyAvatarSpawn(myIDNum,myAvatarIndex,spawnPosition);
+        SetAvatarObject(myIDNum,mySpawnObject);
+    }
+    
+    /*相手のアバターを作成するメソッド*/
+    void SpawnEnemyAvatar()
+    {
+        int myIDNum = GameSessionData.Instance.myIDNum;
+        var allPlayers = GameSessionData.Instance.AllPlayers;
+
+        foreach(var player in allPlayers)
+        {
+            if(player.Key !=myIDNum)
+            {
+                GameObject spawnObject = EnemyAvatarSpawn(player.Key,player.Value.avatarIdx,player.Value.firstSpawnPos);
+                SetAvatarObject(player.Key,spawnObject);
+            }
+        }
     }
 
-    GameObject AvatarSpawn(int avatarIdx,Vector3 spawnPos)
+    /*自身のアバターの設定するメソッド*/
+    GameObject MyAvatarSpawn(int playerID,int avatarIdx,Vector3 spawnPos)
     {
         GameObject avatarPrb = avatarData.playerAvatars[avatarIdx];
         GameObject myAvatar = Instantiate(avatarPrb,spawnPos,Quaternion.identity);
+
+        myAvatar.gameObject.tag = "Player";//タグの設定(当たり判定で必要)
+        myAvatar.GetComponent<PlayerMovement>().gameManager = gameManager;//移動のスクリプトの設定
+        myAvatar.GetComponent<PlayerStatusController>().gameManager = gameManager;//状態遷移のスクリプトの設定
+        myAvatar.GetComponentInChildren<MouseLookController>().gameManager = gameManager;//視点回転のスクリプトの設定
+
+        myAvatar.GetComponentInChildren<MouseLookController>().playerBody = myAvatar.transform;//視点回転のスクリプトの設定
+
+        PlayerViewController playerViewController = myAvatar.GetComponent<PlayerViewController>();
+        playerViewController.myProfile = GameSessionData.Instance.GetPlayer(playerID);//PlayerProfileを渡して固有情報を持たせる
+        playerViewController.Setup();//色の初期設定
+        //StatusControllerにあとでIDをわたす
         
-        myAvatar.gameObject.tag = "Player";
-        myAvatar.GetComponent<PlayerMovement>().gameManager = gameManager;
-        myAvatar.GetComponent<PlayerStatusController>().gameManager = gameManager;
-        myAvatar.GetComponentInChildren<MouseLookController>().gameManager = gameManager;
-        myAvatar.GetComponentInChildren<MouseLookController>().playerBody = myAvatar.transform;
+        
+        return myAvatar;
+    }
+
+    /*相手のアバターの設定をするメソッド*/
+    GameObject EnemyAvatarSpawn(int playerID,int avatarIdx,Vector3 spawnPos)
+    {
+        GameObject avatarPrb = avatarData.enemyAvatars[avatarIdx];
+        GameObject myAvatar = Instantiate(avatarPrb,spawnPos,Quaternion.identity);
+
+        myAvatar.gameObject.tag = "Player";//タグの設定(当たり判定で必要)
+        //移動のスクリプトの設定
+        //状態遷移のスクリプトの設定
+        myAvatar.GetComponent<PlayerStatusController>().gameManager = gameManager;//状態遷移のスクリプトの設定
+
+        EnemyViewController enemyViewController = myAvatar.GetComponent<EnemyViewController>();
+        enemyViewController.myProfile = GameSessionData.Instance.GetPlayer(playerID);//PlayerProfileを渡して固有情報を持たせる
+        enemyViewController.Setup();//色の初期設定
 
         return myAvatar;
     }
 
-    void AvatarColorSet(int colorIdx,GameObject myAvatar)
+    /*生成したオブジェクトをPlayerProfileにセットするメソッド*/
+    void SetAvatarObject(int idNum,GameObject avatarObj)
     {
-        Renderer[] avatarRenderers = myAvatar.GetComponentsInChildren<Renderer>();
-        Renderer bodyRenderer = avatarRenderers[0];
-        Renderer earsRenderer = avatarRenderers[1];
-        Color baseColor = avatarData.baseColors[colorIdx];
-        Color emissionColor = avatarData.emissionColors[colorIdx];
-        float emissionIntensity = Mathf.Pow(2,avatarData.emissionIntensity[colorIdx]);
-
-        bodyRenderer.material.SetColor("_Color", baseColor);
-        bodyRenderer.material.SetColor("_EmissionColor", emissionColor*emissionIntensity);
-        earsRenderer.material.SetColor("_Color", baseColor);
-        earsRenderer.material.SetColor("_EmissionColor", emissionColor*emissionIntensity);
+        var playerProfile = GameSessionData.Instance.GetPlayer(idNum);
+        playerProfile.playerObject = avatarObj;
     }
+
 }

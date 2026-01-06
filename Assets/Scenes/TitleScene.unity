@@ -2245,9 +2245,9 @@ MonoBehaviour:
   myAvatarIndex: 0
   myColorIndex: 0
   myName: hisame
-  enemyAvatarIndex: 
-  enemyColorIndex: 
-  enemyNames: []
+  playerLimitNum: 8
+  playerNum: 3
+  spawnPos: []
 --- !u!4 &1590381528
 Transform:
   m_ObjectHideFlags: 0

@@ -11,5 +11,7 @@ public class AvatarData : ScriptableObject
     public GameObject[] enemyAvatars;
     public Color[] baseColors;
     public Color[] emissionColors;
+    public Color normalColor;
+    public Color tagColor;
     public float[] emissionIntensity;
 }
