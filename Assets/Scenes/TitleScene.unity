@@ -2242,12 +2242,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19171b811b96c4b519bdb81e71e2e25e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myIDNum: 0
   myAvatarIndex: 0
   myColorIndex: 0
   myName: hisame
   playerLimitNum: 8
   playerNum: 3
   spawnPos: []
+  avatarIdx: 
 --- !u!4 &1590381528
 Transform:
   m_ObjectHideFlags: 0
