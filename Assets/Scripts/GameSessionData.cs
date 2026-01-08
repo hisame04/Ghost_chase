@@ -6,6 +6,25 @@ using UnityEngine;
 public class GameSessionData : MonoBehaviour
 {
     public static GameSessionData Instance { get; private set; }
+
+    /*通信の設定*/
+    //通信方法の選択肢
+    public enum ProtocolType { UDP, TCP }
+    public enum RoleType { Host, Client }
+    //実際の値
+    public ProtocolType selectedProtocol;
+    public RoleType selectedRole;
+    //IPアドレス情報
+    public string roomId;
+    public string serverIP;
+    public string serverPort;
+    public int clientPort;
+    //クライアント
+    public IGameClient _client;
+    //サーバ
+    public UdpGameServer _udpServer;
+    //public TcpGameServer _tcpServer;【TCP導入後挿入箇所】
+
     /*自分自身のデータ*/
     public int myIDNum;
     public int myAvatarIndex;

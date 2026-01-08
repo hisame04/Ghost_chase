@@ -76,22 +76,25 @@ public class UdpGameClient:IGameClient
     private IPEndPoint _serverEndPoint;
 
     /*サーバへの接続*/
-    public void Connect(string serverIp, int serverPort)
+    public Task ConnectAsync(string serverIp, int serverPort)
     {
         
         try
         {
-            if (_udpClient != null) return;//接続済なら何もしない
+            if (_udpClient != null) return Task.CompletedTask;//接続済なら何もしない
 
             _udpClient = new UdpClient(0);
             _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp),serverPort);
             _udpClient.Connect(_serverEndPoint);
 
             Debug.Log($"[Client] サーバに接続しました{((IPEndPoint)_udpClient.Client.LocalEndPoint).Port}");
+
+            return Task.CompletedTask;
         }
         catch(Exception ex)
         {
             Debug.LogError($"[Client Error] {ex.Message}");
+            return Task.CompletedTask;
         }
     }
 

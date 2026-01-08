@@ -1005,7 +1005,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: Client
 --- !u!222 &468375682
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1163,7 +1163,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: Host
 --- !u!222 &542240986
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1189,7 +1189,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &624182434
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1514,7 +1514,7 @@ GameObject:
   - component: {fileID: 724410503}
   - component: {fileID: 724410502}
   m_Layer: 5
-  m_Name: ClientButton
+  m_Name: RoomIdDecideButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1714,7 +1714,7 @@ GameObject:
   - component: {fileID: 787594516}
   - component: {fileID: 787594515}
   m_Layer: 5
-  m_Name: RoomNumText
+  m_Name: RoomIdText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2159,10 +2159,10 @@ RectTransform:
   - {fileID: 538431922}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 140, y: -80}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &884132404
 MonoBehaviour:
@@ -2413,6 +2413,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 966846480}
   m_CullTransparentMesh: 1
+--- !u!1 &989561616
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 989561618}
+  - component: {fileID: 989561617}
+  m_Layer: 0
+  m_Name: NetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &989561617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 989561616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0adef1693503a40eab752fe58a954c45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  protocolPanel: {fileID: 1292325678}
+  rolePanel: {fileID: 1789109383}
+  roomConnectPanel_client: {fileID: 624182433}
+  selectAvatarPanel: {fileID: 1325960596}
+  udpButton: {fileID: 82661964}
+  tcpButton: {fileID: 1770614028}
+  hostButton: {fileID: 659007794}
+  clientButton: {fileID: 810780087}
+  roomIdDecideButton: {fileID: 724410502}
+  roomIdInput: {fileID: 1633565083}
+  roomIdShow: {fileID: 787594515}
+--- !u!4 &989561618
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 989561616}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 426.67526, y: 256.74033, z: 126.48282}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1009124298
 GameObject:
   m_ObjectHideFlags: 0
@@ -2902,7 +2957,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: TCP
 --- !u!222 &1190259278
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2981,7 +3036,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: RoomIdDecided
 --- !u!222 &1265286318
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3024,10 +3079,10 @@ RectTransform:
   - {fileID: 1381422070}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 80, y: -80}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1287666187
 MonoBehaviour:
@@ -3217,7 +3272,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1325960597
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3315,10 +3370,10 @@ RectTransform:
   - {fileID: 629634525}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 20, y: -20}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1350449668
 MonoBehaviour:
@@ -3712,10 +3767,10 @@ RectTransform:
   - {fileID: 338227144}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 140, y: -20}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1509269307
 MonoBehaviour:
@@ -4061,6 +4116,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19171b811b96c4b519bdb81e71e2e25e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedProtocol: 0
+  selectedRole: 0
+  roomId: 
+  serverIP: 
+  serverPort: 
+  clientPort: 0
   myIDNum: 0
   myAvatarIndex: 0
   myColorIndex: 0
@@ -4231,7 +4292,7 @@ GameObject:
   - component: {fileID: 1633565084}
   - component: {fileID: 1633565083}
   m_Layer: 5
-  m_Name: RoomNumInput
+  m_Name: RoomIdInput
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4913,7 +4974,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1789109384
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5086,10 +5147,10 @@ RectTransform:
   - {fileID: 1380245626}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 20, y: -80}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1887781723
 MonoBehaviour:
@@ -5255,7 +5316,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Button
+  m_Text: UDP
 --- !u!222 &1939687205
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5298,10 +5359,10 @@ RectTransform:
   - {fileID: 742914903}
   m_Father: {fileID: 1131472401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 80, y: -20}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1979906574
 MonoBehaviour:
@@ -5511,3 +5572,4 @@ SceneRoots:
   - {fileID: 1009124300}
   - {fileID: 799617578}
   - {fileID: 1590381528}
+  - {fileID: 989561618}
