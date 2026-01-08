@@ -207,7 +207,11 @@ public class NetworkManager : MonoBehaviour
                 rolePanel.SetActive(false);
                 roomConnectPanel_client.SetActive(false);
                 selectAvatarPanel.SetActive(true);
+                
                 Debug.Log("【クライアント】ホストへの接続完了");
+
+                //決定した部屋番号を表示する
+                SetRoomIdShow(roomIdShow, roomId);
             }
             else
             {
