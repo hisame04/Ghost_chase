@@ -85,20 +85,3 @@ public static class NetworkUtils
         }
     }
 }
-
-
-[System.Serializable]
-/*IPアドレスのデータを登録するためのクラス*/
-public class RoomData
-{
-    public string localIp;
-    public string globalIp;
-    public int port;
-
-    public RoomData(string localIp, string globalIp, int port)
-    {
-        this.localIp = localIp;
-        this.globalIp = globalIp;
-        this.port = port;
-    }
-}

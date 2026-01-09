@@ -77,6 +77,32 @@ public class GameSessionData : MonoBehaviour
         Debug.Log($"mycolorIdx/{AllPlayers[myIDNum].colorIdx}");
     }
 
+    /*プレイヤー名をセットする*/
+    public void SetPlayerName(string playerName)
+    {
+        myName = playerName;
+    }
+    /*プロトコルセット*/
+    public void SetProtcol(int protcol)
+    {
+        selectedProtocol = (GameSessionData.ProtocolType)protcol;
+        Debug.Log($"SetProtocol:{GameSessionData.Instance.selectedProtocol}");
+    }
+
+    /*ロールセット*/
+    public void SetRole(int role)
+    {
+        selectedRole = (GameSessionData.RoleType)role;
+        Debug.Log($"SetRole:{GameSessionData.Instance.selectedRole}");
+    }
+
+    /*部屋番号セット*/
+    public void SetRoomId(string selectRoomId)
+    {
+        roomId = selectRoomId;
+        Debug.Log($"SetRoomId:{GameSessionData.Instance.roomId}");
+    }
+
     //id指定でプレイヤーの情報(PlayerProfile)を探す
     public PlayerProfile GetPlayer(int id)
     {

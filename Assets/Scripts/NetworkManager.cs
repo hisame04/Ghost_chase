@@ -30,41 +30,30 @@ public class NetworkManager : MonoBehaviour
     private UdpGameServer _udpServer;
     //private TcpGameServer _tcpServer; //【TCP導入後挿入箇所】
     private IGameClient _client;
-
-    //UI用変数
-    public GameObject protocolPanel;
-    public GameObject rolePanel;
-    public GameObject roomConnectPanel_client;
-    public GameObject selectAvatarPanel;
-
-    public Button udpButton;//UDP選択用ボタン
-    public Button tcpButton;//TCP選択用ボタン
-    public Button hostButton;//部屋を作成するのを選択する(ホスト)用ボタン
-    public Button clientButton;//部屋に入るのを選択する(クライアント用)ボタン
-    public Button roomIdDecideButton;//部屋番号を指定して決定するボタン
-    public TMP_InputField roomIdInput;//部屋番号を入力する欄
-    public TMP_InputField roomIdShow;//部屋番号を入力する欄
-
     DatabaseReference reference;
 
     // キャンセル用のトークンソース
     private CancellationTokenSource _cts;
 
-////*Awake*////
+    // public Dictionary<IPEndPoint, PlayerInfo> connectedPlayers = new Dictionary<IPEndPoint, PlayerInfo>();
+
+    ////*Awake*////
     void Awake()
     {
-        Instance = this;
-
-        //UIの表示非表示の設定
-        protocolPanel.SetActive(true);
-        rolePanel.SetActive(false);
-        roomConnectPanel_client.SetActive(false);
-        selectAvatarPanel.SetActive(false);
-
-        _cts = new CancellationTokenSource();
+        if (Instance == null)
+        {
+            Instance = this;
+            _cts = new CancellationTokenSource();
+            DontDestroyOnLoad(gameObject); // シーン遷移しても消えないようにする
+        }
+        else
+        {
+            Destroy(gameObject); // 重複して存在しないようにする
+            return;
+        }
     }
 
-////*Start*////
+    ////*Start*////
     async void Start()
     {
         try
@@ -74,13 +63,8 @@ public class NetworkManager : MonoBehaviour
             //IPアドレス情報の取得
             await GetMyIP();
 
-            //UIのボタンのセット
-            udpButton.onClick.AddListener(OnSelectUDP);
-            tcpButton.onClick.AddListener(OnSelectTCP);
-            hostButton.onClick.AddListener(OnHostStart);
-            clientButton.onClick.AddListener(OnClientStart);
-            roomIdDecideButton.onClick.AddListener(OnDecideRoomId);
-
+            //プロトコルの初期設定
+            GameSessionData.Instance.SetProtcol((int)GameSessionData.ProtocolType.UDP);
         }
         catch (Exception ex)
         {
@@ -88,7 +72,21 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-////*アプリケーション終了時の処理*////
+    ////*Update*////
+    void Update()
+    {
+        // テスト用: スペースキーを押したら送信
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (_client != null)
+            {
+                _client.SendMessage($"Test Message {Time.time}");
+                Debug.Log("テストメッセージ送信");
+            }
+        }
+    }
+
+    ////*アプリケーション終了時の処理*////
     /*Unityのオブジェクト破壊時の処理*/
     void OnDestroy()
     {
@@ -96,14 +94,15 @@ public class NetworkManager : MonoBehaviour
         _cts?.Cancel();
         _cts?.Dispose();
 
-        if (GameSessionData.Instance != null && 
-        GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host && 
+        if (GameSessionData.Instance != null &&
+        GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host &&
         !string.IsNullOrEmpty(GameSessionData.Instance.roomId))
         {
             // レファレンスが生きていれば削除を実行
             if (reference != null)
             {
-                reference.Child("rooms").Child(GameSessionData.Instance.roomId).RemoveValueAsync();
+                string protocolName = GetProtocolName();
+                reference.Child("rooms").Child(protocolName).Child(GameSessionData.Instance.roomId).RemoveValueAsync();
             }
         }
     }
@@ -117,26 +116,31 @@ public class NetworkManager : MonoBehaviour
         Debug.Log(myGlobalIp);
     }
 
-////*ボタンに割り当てるメソッド*////
+    ////*ボタンに割り当てるメソッド*////
     //*UDP選択時の処理*//
-    public void OnSelectUDP() => SetProtcol((int)GameSessionData.ProtocolType.UDP);
+    public void OnSelectUDP()
+    {
+        GameSessionData.Instance.SetProtcol((int)GameSessionData.ProtocolType.UDP);
+    }
 
     //*TCP選択時の処理*//
-    public void OnSelectTCP() => SetProtcol((int)GameSessionData.ProtocolType.TCP);
+    public void OnSelectTCP()
+    {
+        GameSessionData.Instance.SetProtcol((int)GameSessionData.ProtocolType.TCP);
+    }
 
     //*ホスト選択時の処理*//
-    private async void OnHostStart()
+    public async Task<string> OnHostSelect()
     {
         //選択したロールをデータにセット
-        SetRole((int)GameSessionData.RoleType.Host);
+        GameSessionData.Instance.SetRole((int)GameSessionData.RoleType.Host);
         //部屋番号決める(ランダム生成→チェック→チェックが通ったら決定&確保)
         string roomId = await AutSetRoomId();
         ////失敗した場合の処理
         if (string.IsNullOrEmpty(roomId))
         {
             Debug.Log("【ホスト】部屋番号の生成に失敗");
-            SetButtonsInteractable(true);
-            return;
+            return null;
         }
         //書き込んだIPアドレスでサーバ起動
         bool isRoomCreated = await CreateRoom(roomId);
@@ -144,86 +148,71 @@ public class NetworkManager : MonoBehaviour
         if (!isRoomCreated)
         {
             Debug.LogError("【ホスト】部屋作成処理に失敗");
-            SetButtonsInteractable(true);
-            return;
+            return null;
         }
         bool isStartHostClient = await StartHostClient();
         ////失敗した場合の処理
-        if (!isRoomCreated)
+        if (!isStartHostClient)
         {
             Debug.Log("【ホスト】ホスト自身の接続に失敗");
-            SetButtonsInteractable(true);
-            return;
+            return null;
         }
 
-        //決定した部屋番号を表示する
-        SetRoomIdShow(roomIdShow, roomId);
-
-        //UIの表示非表示の設定
-        protocolPanel.SetActive(false);
-        rolePanel.SetActive(false);
-        roomConnectPanel_client.SetActive(false);
-        selectAvatarPanel.SetActive(true);
-
         Debug.Log("【ホスト】セットアップ完了");
+        return roomId;
     }
 
     //*クライアント選択時の処理*//
-    private async void OnClientStart()
+    public async void OnClientSelect()
     {
         //選択したロールをデータにセット
-        SetRole((int)GameSessionData.RoleType.Client);
+        GameSessionData.Instance.SetRole((int)GameSessionData.RoleType.Client);
         //クライアントの生成
         SetClient((int)GameSessionData.Instance.selectedProtocol);
-
-        //UIの表示非表示の設定
-        protocolPanel.SetActive(false);
-        rolePanel.SetActive(false);
-        roomConnectPanel_client.SetActive(true);
-        selectAvatarPanel.SetActive(false);
     }
 
     //*部屋番号入力決定時*//
-    public async void OnDecideRoomId()
+    public async Task<string> OnDecideRoomId(string roomId)
     {
-        string roomId = roomIdInput.text;
         if (!CheckDecideRoomId(roomId))
         {
             Debug.LogError("部屋番号は4桁の数字で入力してください！");
-            // ここでユーザーに警告ポップアップなどを出すと親切です
-            roomIdInput.text = null;
-            return;
+            return null;
+        }
+
+        //連打防止
+        // roomIdDecideButton.interactable = false;
+
+        //入力された部屋番号のホストへ接続
+        if (await ConnectServer(roomId))
+        {
+            //部屋番号をGameSessionDataに登録
+            GameSessionData.Instance.SetRoomId(roomId);
+
+            Debug.Log("【クライアント】ホストへの接続完了");
+            await Task.Delay(10);
+            _client.SendMessage("Hello Host");
+            return roomId;
         }
         else
         {
-            //入力された部屋番号のホストへ接続
-            if (await ConnectServer(roomId))
-            {
-                //部屋番号をGameSessionDataに登録
-                SetRoomId(roomId);
-
-                //UIの表示非表示の設定
-                protocolPanel.SetActive(false);
-                rolePanel.SetActive(false);
-                roomConnectPanel_client.SetActive(false);
-                selectAvatarPanel.SetActive(true);
-                
-                Debug.Log("【クライアント】ホストへの接続完了");
-
-                //決定した部屋番号を表示する
-                SetRoomIdShow(roomIdShow, roomId);
-            }
-            else
-            {
-                Debug.Log("ホストの接続に失敗しました");
-            }
-
+            Debug.Log("ホストの接続に失敗しました");
+            return null;
         }
-    }
-////////////////////////////////
-    
 
-////*その他メソッド*////
+    }
+    ////////////////////////////////
+
+
+    ////*その他メソッド*////
+
+    /*選択しているプロトコル名をstringで取得*/
+    private string GetProtocolName()
+    {
+        return GameSessionData.Instance.selectedProtocol.ToString(); // "UDP" または "TCP" を返す
+    }
+
+
     /*ホストのクライアントの接続*/
     private async Task<bool> StartHostClient()
     {
@@ -247,7 +236,8 @@ public class NetworkManager : MonoBehaviour
     {
         string myToken = Guid.NewGuid().ToString();
 
-        DatabaseReference target = reference.Child("rooms").Child(roomId.ToString());
+        string protocolName = GetProtocolName();
+        DatabaseReference target = reference.Child("rooms").Child(protocolName).Child(roomId.ToString());
         DataSnapshot snapshot = await target.RunTransaction(mutableData =>
         {
             // もしすでにデータがあったら（誰かが使っていたら）
@@ -276,6 +266,11 @@ public class NetworkManager : MonoBehaviour
     /*部屋番号の重複防止生成*/
     private async Task<string> AutSetRoomId()
     {
+        if (_cts == null || IsCtsDisposed(_cts))
+        {
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+        }
         Debug.Log("部屋番号生成中...");
         while (Application.isPlaying)
         {
@@ -312,7 +307,8 @@ public class NetworkManager : MonoBehaviour
 
         try
         {
-            var roomRef = reference.Child("rooms").Child(roomId);
+            string protocolName = GetProtocolName();
+            var roomRef = reference.Child("rooms").Child(protocolName).Child(roomId);
             //切断された際の処理
             await roomRef.OnDisconnect().RemoveValue();
             //firebaseへjson形式にしたIPアドレス情報の書き込み
@@ -320,13 +316,13 @@ public class NetworkManager : MonoBehaviour
 
             GameSessionData.Instance.roomId = roomId;
             //サーバの起動
-            SetServer(serverPort);
+            SetServer((int)GameSessionData.Instance.selectedProtocol);
 
             return true;
         }
         catch (Exception ex)
         {
-            Debug.Log($"{ex.Message}");
+            Debug.Log($"部屋作成エラー{ex.Message}");
             return false;
         }
     }
@@ -339,11 +335,13 @@ public class NetworkManager : MonoBehaviour
         {
             _udpServer = new UdpGameServer();
             await _udpServer.StartServer(serverPort);
+            Debug.Log("Create UDPServer");
         }
         else if (type == GameSessionData.ProtocolType.TCP)
         {
             //_tcpServer = new TcpGameServer(); //【TCP導入後挿入箇所】
             //await _tcpServer.StartServer(serverPort); //【TCP導入後挿入箇所】
+            Debug.Log("Create TCPServer");
         }
     }
 
@@ -364,8 +362,21 @@ public class NetworkManager : MonoBehaviour
     /*firebaseからサーバのIPアドレスの取得*/
     private async Task<DataSnapshot> GetServerIP(string roomId)
     {
-        DatabaseReference target = reference.Child("rooms").Child(roomId);
-        DataSnapshot snapshot = await target.GetValueAsync();
+        string protocolName = GetProtocolName();
+        DatabaseReference target = reference.Child("rooms").Child(protocolName).Child(roomId);
+
+        var timeoutTask = Task.Delay(5000);
+        var getValueTask = target.GetValueAsync();
+
+        var completedTask = await Task.WhenAny(getValueTask, timeoutTask);
+
+        if (completedTask == timeoutTask)
+        {
+            Debug.LogError("タイムアウト: 部屋情報の取得に時間がかかりすぎました");
+            return null;
+        }
+
+        DataSnapshot snapshot = await getValueTask;
 
         if (!snapshot.Exists)
         {
@@ -383,23 +394,34 @@ public class NetworkManager : MonoBehaviour
 
         //firebaseからroomIdのデータを読み取る
         DataSnapshot snapshot = await GetServerIP(roomId);
+
+        //部屋が見つからなかった場合
+        if (snapshot == null || !snapshot.Exists)
+        {
+            Debug.Log("部屋が見つかりません");
+            return null;
+        }
+
         //読み取ったデータを変数に代入
         string hostLocalIP = snapshot.Child("localIp").Value.ToString();
         string hostGlobalIp = snapshot.Child("globalIp").Value.ToString();
 
         //同じコンピュータの場合
-        if(myLocalIp == hostLocalIP && myGlobalIp == hostGlobalIp)
+        if (myLocalIp == hostLocalIP && myGlobalIp == hostGlobalIp)
         {
+            Debug.Log("ホストIP判定: 自分自身(Localhost)");
             selectServerIP = "127.0.0.1";
         }
         //ローカルネットワーク内にホストがいた場合
         else if (myGlobalIp == hostGlobalIp)
         {
+            Debug.Log("ホストIP判定: 同じネットワーク内");
             selectServerIP = hostLocalIP;
         }
         //ローカルネットワーク内にホストがいない場合
         else
         {
+            Debug.Log("ホストIP判定: 異なるネットワーク");
             selectServerIP = hostGlobalIp;
         }
 
@@ -436,49 +458,19 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    /*プロトコルセット*/
-    private void SetProtcol(int protcol)
+    /*キャンセルトークンが存在するかの確認メソッド*/
+    private bool IsCtsDisposed(CancellationTokenSource cts)
     {
-        GameSessionData.Instance.selectedProtocol = (GameSessionData.ProtocolType)protcol;
-        Debug.Log($"SetProtocol:{GameSessionData.Instance.selectedProtocol}");
-
-        //UIの表示非表示の設定
-        protocolPanel.SetActive(false);
-        rolePanel.SetActive(true);
-        roomConnectPanel_client.SetActive(false);
-        selectAvatarPanel.SetActive(false);
-    }
-
-    /*ロールセット*/
-    private void SetRole(int role)
-    {
-        GameSessionData.Instance.selectedRole = (GameSessionData.RoleType)role;
-        Debug.Log($"SetRole:{GameSessionData.Instance.selectedRole}");
-    }
-
-    /*部屋番号セット*/
-    private void SetRoomId(string roomId)
-    {
-        GameSessionData.Instance.roomId = roomId;
-        Debug.Log($"SetRoomId:{GameSessionData.Instance.roomId}");
-    }
-
-
-////*UI制御用メソッド*////
-
-    /*ボタンの有効化・無効化*/
-    void SetButtonsInteractable(bool state)
-    {
-        if (udpButton) udpButton.interactable = state;
-        if (tcpButton) tcpButton.interactable = state;
-        if (hostButton) hostButton.interactable = state;
-        if (clientButton) clientButton.interactable = state;
-        if (roomIdDecideButton) roomIdDecideButton.interactable = state;
-    }
-
-    void SetRoomIdShow(TMP_InputField roomIdField, string roomId)
-    {
-        roomIdField.text = roomId;
+        try
+        {
+            // Tokenにアクセスして例外が出たら破棄されている
+            var t = cts.Token;
+            return t.IsCancellationRequested; // キャンセル済みの場合も作り直したいので
+        }
+        catch (ObjectDisposedException)
+        {
+            return true;
+        }
     }
 
 }

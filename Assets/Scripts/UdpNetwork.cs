@@ -23,39 +23,51 @@ public class UdpGameServer
         {
             /*サーバの起動(UdpClientの立ち上げ)*/
             var local = new IPEndPoint(IPAddress.Any, port);
-            var remote = new IPEndPoint(IPAddress.Any,8000);
+            var remote = new IPEndPoint(IPAddress.Any, 8000);
             _udpClient = new UdpClient(local);
             isRunning = true;
             Debug.Log($"[Server] 起動しました Port:{port}");
+        }
+        catch (Exception ex)
+        {
+            Debug.Log($"{ex.Message}");
+        }
 
-            while (isRunning)
+        while (isRunning)
+        {
+            try
             {
                 UdpReceiveResult result = await _udpClient.ReceiveAsync();
                 //データ受信待機、受信したらbufferに受信したUDPデータグラムを格納
                 var buffer = result.Buffer;
-                remote = result.RemoteEndPoint;
+                var remote = result.RemoteEndPoint;
                 //受信したデータ(バイト)を文字列に変換
                 var data = Encoding.UTF8.GetString(buffer);
                 //OnRecieveメソッド(受信イベント)の実行
                 this.OnRecieve(data, remote);
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"[Server Error] {ex.Message}");
+            catch (ObjectDisposedException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[Server Receive Error] {ex.Message}");
+            }
         }
     }
 
+
     /*受信したデータの処理*/
-    private void OnRecieve(string data,IPEndPoint remote)//dataはあとで構造体に変更
+    private void OnRecieve(string data, IPEndPoint remote)//dataはあとで構造体に変更
     {
         Debug.Log($"[Server]受信{data} from:{remote}");
     }
-    
+
     /*サーバからの送信*/
-    private async Task SendMessage(string data,IPEndPoint remote)//dataはあとで構造体に変更
+    private async Task SendMessage(string data, IPEndPoint remote)//dataはあとで構造体に変更
     {
-        
+
     }
 
     /*サーバの停止*/
@@ -70,7 +82,7 @@ public class UdpGameServer
 }
 
 //*クライアントのクラス*//
-public class UdpGameClient:IGameClient
+public class UdpGameClient : IGameClient
 {
     private UdpClient _udpClient;
     private IPEndPoint _serverEndPoint;
@@ -78,20 +90,20 @@ public class UdpGameClient:IGameClient
     /*サーバへの接続*/
     public Task ConnectAsync(string serverIp, int serverPort)
     {
-        
+
         try
         {
             if (_udpClient != null) return Task.CompletedTask;//接続済なら何もしない
 
             _udpClient = new UdpClient(0);
-            _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp),serverPort);
+            _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
             _udpClient.Connect(_serverEndPoint);
 
             Debug.Log($"[Client] サーバに接続しました{((IPEndPoint)_udpClient.Client.LocalEndPoint).Port}");
 
             return Task.CompletedTask;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Debug.LogError($"[Client Error] {ex.Message}");
             return Task.CompletedTask;
@@ -122,25 +134,25 @@ public class UdpGameClient:IGameClient
     /*メッセージの受信*/
     public async Task ListenMessageAsync()
     {
-        if(_udpClient == null) return;
+        if (_udpClient == null) return;
 
         try
         {
-            while(_udpClient != null)
+            while (_udpClient != null)
             {
                 var result = await _udpClient.ReceiveAsync();
                 var remote = result.RemoteEndPoint;
 
                 string response = Encoding.UTF8.GetString(result.Buffer);
 
-                this.OnRecieve(response,remote);
+                this.OnRecieve(response, remote);
             }
         }
         catch (ObjectDisposedException)
         {
             Debug.Log("受信待機を終了しました。");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Debug.Log($"エラーが発生しました: {ex.Message}");
             throw;
@@ -148,7 +160,7 @@ public class UdpGameClient:IGameClient
     }
 
     /*受信したデータの処理*/
-    private void OnRecieve(string data,IPEndPoint remote)//dataはあとで構造体に変更
+    private void OnRecieve(string data, IPEndPoint remote)//dataはあとで構造体に変更
     {
         Debug.Log($"[Client]受信{data} from:{remote}");
     }
