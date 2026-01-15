@@ -1,3 +1,4 @@
+////*通信のパケット形式を定めたデータ*////
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,8 @@ public enum NetworkCommand
 {
     ConnectRequest,    // 接続要求
     ConnectResponse, //接続応答
+    ConnectRefused, //接続失敗
+    Disconnect, //切断通知
     SendAvatarData, //プレイヤー基本情報(アバターなど)
     AllPlayerListUpdate, //部屋に参加しているプレイヤー情報
     GameStart,  // ゲーム開始
@@ -32,10 +35,23 @@ public class ConnectRequestData
     // 将来ここにアバターIDなどを追加
 }
 
-/*接続応答として送るデータの中身*/
+/*接続成功として送るデータの中身*/
 public class ConnectResponseData
 {
+    public int roomId; //部屋番号
     public int playerId; //プレイヤーに割り当てたID番号
+}
+
+/*接続失敗として送るデータの中身*/
+public class ConnectRefusedData
+{
+    public string reason; //接続できない理由
+}
+
+/*切断時に送るデータの中身*/
+public class DisconnectData
+{
+    public int playerId;
 }
 
 /*ホストに送るアバターデータの中身*/

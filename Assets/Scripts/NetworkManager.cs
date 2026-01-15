@@ -1,3 +1,4 @@
+////*ゲーム内の通信制御用のスクリプト*////
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,10 +12,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager Instance;//どこからでもアクセスできるように
+
+    public ServerGameState ServerState { get; private set; }
 
     //自身のIPアドレス情報
     string myLocalIp;
@@ -32,10 +36,18 @@ public class NetworkManager : MonoBehaviour
     private IGameClient _client;
     DatabaseReference reference;
 
+    //ホストとクライアントの受信処理のハンドル
+    private HostPacketHandler _hostHandler;
+    private ClientPacketHandler _clientHandler;
+
+
     // キャンセル用のトークンソース
     private CancellationTokenSource _cts;
 
-    // public Dictionary<IPEndPoint, PlayerInfo> connectedPlayers = new Dictionary<IPEndPoint, PlayerInfo>();
+    //他のスクリプトに通知を送るためのイベント
+    public event Action OnJoinRoomSuccess;
+    public event Action<string> OnJoinRoomFailed;
+
 
     ////*Awake*////
     void Awake()
@@ -44,6 +56,11 @@ public class NetworkManager : MonoBehaviour
         {
             Instance = this;
             _cts = new CancellationTokenSource();
+
+            _hostHandler = new HostPacketHandler(this);//ホストのハンドラー
+            _clientHandler = new ClientPacketHandler(this);//クライアントのハンドラー
+
+            ServerState = new ServerGameState();
             DontDestroyOnLoad(gameObject); // シーン遷移しても消えないようにする
         }
         else
@@ -56,6 +73,13 @@ public class NetworkManager : MonoBehaviour
     ////*Start*////
     async void Start()
     {
+        //部屋の最大人数の設定
+        if(ServerState != null && GameSessionData.Instance != null)
+        {
+            Debug.Log($"ServerState.maxPlayerNum: {GameSessionData.Instance.playerLimitNum}");
+            ServerState.maxPlayerNum = GameSessionData.Instance.playerLimitNum;
+        }
+
         try
         { // Firebaseの準備
             reference = FirebaseDatabase.DefaultInstance.RootReference;
@@ -116,7 +140,7 @@ public class NetworkManager : MonoBehaviour
         Debug.Log(myGlobalIp);
     }
 
-    ////*ボタンに割り当てるメソッド*////
+    ////*ボタンから呼び出すメソッド*////
     //*UDP選択時の処理*//
     public void OnSelectUDP()
     {
@@ -186,12 +210,16 @@ public class NetworkManager : MonoBehaviour
         //入力された部屋番号のホストへ接続
         if (await ConnectServer(roomId))
         {
+            var connectData = new ConnectRequestData { playerName = GameSessionData.Instance.myName };
+            SendPacketToHost(NetworkCommand.ConnectRequest, connectData);
+
+
             //部屋番号をGameSessionDataに登録
             GameSessionData.Instance.SetRoomId(roomId);
 
             Debug.Log("【クライアント】ホストへの接続完了");
             await Task.Delay(10);
-            _client.SendMessage("Hello Host");
+            
             return roomId;
         }
         else
@@ -334,12 +362,20 @@ public class NetworkManager : MonoBehaviour
         if (type == GameSessionData.ProtocolType.UDP)
         {
             _udpServer = new UdpGameServer();
+
+            //OnReceiveで受信したらHostPacketHandlerのHandleを呼び出す
+            _udpServer.OnDataReceived += (data, remote) =>
+            {
+                _hostHandler.Handle(data, remote);
+            };
+
             await _udpServer.StartServer(serverPort);
             Debug.Log("Create UDPServer");
         }
         else if (type == GameSessionData.ProtocolType.TCP)
         {
             //_tcpServer = new TcpGameServer(); //【TCP導入後挿入箇所】
+            //_tcpServer.OnDataReceived += (data,remote) =>{_hostHandler.Handle(data,remote)}
             //await _tcpServer.StartServer(serverPort); //【TCP導入後挿入箇所】
             Debug.Log("Create TCPServer");
         }
@@ -352,6 +388,13 @@ public class NetworkManager : MonoBehaviour
         if (type == GameSessionData.ProtocolType.UDP)
         {
             _client = new UdpGameClient();
+
+            //OnReceiveで受信したらClientPacketHandlerのHandleを呼び出す
+            _client.OnDataReceived += (data) =>
+            {
+                _clientHandler.Handle(data);
+            };
+
         }
         else if (type == GameSessionData.ProtocolType.TCP)
         {
@@ -458,6 +501,67 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+
+    //*部屋接続成功時*//
+    public void TriggerJoinRoomSuccess()
+    {
+        OnJoinRoomSuccess?.Invoke();
+    }
+
+
+    //*部屋接続失敗時*//
+    public void TriggerJoinRoomFailed(string reason)
+    {
+        DisconnectLocal();
+        OnJoinRoomFailed?.Invoke(reason);
+    }
+
+    /*部屋離脱メソッド*/
+    public void LeaveRoom()
+    {
+        //クライアントが離脱した場合
+        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Client)
+        {
+            SendPacketToHost(NetworkCommand.Disconnect, new DisconnectData{playerId = GameSessionData.Instance.myIDNum});
+        }
+        //ホストが離脱した場合
+        else
+        {
+            
+        }
+
+        //通信を切断する
+        DisconnectLocal();
+
+        //ロール選択画面に戻る
+        
+    }
+
+    /*通信切断用のメソッド*/
+    private void DisconnectLocal()
+    {
+        // キャンセルトークンを止める
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+
+        // UDPクライアントを閉じる
+        if (_client != null)
+        {
+            _client.Close();
+            _client = null;
+        }
+
+        // サーバー機能も動いていれば閉じる（ホストの場合）
+        if (_udpServer != null)
+        {
+            _udpServer.Stop();
+            _udpServer = null;
+        }
+
+        Debug.Log("通信を切断しました");
+    }
+
     /*キャンセルトークンが存在するかの確認メソッド*/
     private bool IsCtsDisposed(CancellationTokenSource cts)
     {
@@ -473,4 +577,55 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    /*ホストにパケットを送信するためのメソッド*/
+    public void SendPacketToHost(NetworkCommand command, object dataObj)
+    {
+        //中身をJSON化
+        string bodyJson = JsonUtility.ToJson(dataObj);
+
+        //パケット作成
+        GamePacket packet = new GamePacket();
+        packet.command = command;
+        packet.dataJson = bodyJson;
+
+        //パケットをJSON化して送信
+        string finalJson = JsonUtility.ToJson(packet);
+
+        if (_client != null)
+        {
+            _client.SendMessage(finalJson);
+        }
+    }
+
+    /*特定のクライアントにパケットを送信するためのメソッド*/
+    public void SendPacketToClient(NetworkCommand command, object dataObj, IPEndPoint remote)
+    {
+        //中身をJSON化
+        string bodyJson = JsonUtility.ToJson(dataObj);
+
+        //パケット作成
+        GamePacket packet = new GamePacket();
+        packet.command = command;
+        packet.dataJson = bodyJson;
+
+        //パケットをJSON化して送信
+        string finalJson = JsonUtility.ToJson(packet);
+
+        //UDPを選択した場合
+        if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.UDP)
+        {
+            if (_udpServer != null)
+            {
+                _udpServer.SendMessage(finalJson, remote);
+            }
+        }
+        //TCPを選択した場合
+        else if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.TCP)
+        {
+            // if(_tcpServer != null)
+            // {
+            //     _tcpServer.SendMessage(finalJson, remote);
+            // }
+        }
+    }
 }

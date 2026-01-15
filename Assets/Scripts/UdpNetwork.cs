@@ -1,3 +1,4 @@
+////*UDPのサーバ・クライアントのスクリプト*////
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Security.Cryptography;
 //*サーバのクラス*//
 public class UdpGameServer
 {
+    public Action<string, IPEndPoint> OnDataReceived; 
     private UdpClient _udpClient;
     public bool isRunning { get; private set; }
 
@@ -62,12 +64,22 @@ public class UdpGameServer
     private void OnRecieve(string data, IPEndPoint remote)//dataはあとで構造体に変更
     {
         Debug.Log($"[Server]受信{data} from:{remote}");
+        OnDataReceived?.Invoke(data, remote);
+
     }
 
     /*サーバからの送信*/
-    private async Task SendMessage(string data, IPEndPoint remote)//dataはあとで構造体に変更
+    public void SendMessage(string message, IPEndPoint remote)
     {
-
+        try
+        {
+            var data = Encoding.UTF8.GetBytes(message);
+            _udpClient.Send(data, data.Length,remote);
+        }
+        catch(Exception ex)
+        {
+            Debug.Log($"送信エラー: {ex.Message}");
+        }
     }
 
     /*サーバの停止*/
@@ -84,6 +96,7 @@ public class UdpGameServer
 //*クライアントのクラス*//
 public class UdpGameClient : IGameClient
 {
+    public Action<string> OnDataReceived {get; set;}
     private UdpClient _udpClient;
     private IPEndPoint _serverEndPoint;
 
@@ -98,6 +111,7 @@ public class UdpGameClient : IGameClient
             _udpClient = new UdpClient(0);
             _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
             _udpClient.Connect(_serverEndPoint);
+            _ =ListenMessageAsync();
 
             Debug.Log($"[Client] サーバに接続しました{((IPEndPoint)_udpClient.Client.LocalEndPoint).Port}");
 
@@ -163,6 +177,7 @@ public class UdpGameClient : IGameClient
     private void OnRecieve(string data, IPEndPoint remote)//dataはあとで構造体に変更
     {
         Debug.Log($"[Client]受信{data} from:{remote}");
+        OnDataReceived?.Invoke(data);
     }
 
     /*終了処理*/

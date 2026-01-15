@@ -1,3 +1,4 @@
+////*タイトル画面のUI制御スクリプト*////
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,8 +41,13 @@ public class TitleUIController : MonoBehaviour
         hostButton.onClick.AddListener(OnHostSelect);
         clientButton.onClick.AddListener(OnClientSelect);
         roomIdDecideButton.onClick.AddListener(OnDecideRoomId);
+
+        //NetworkManagerのイベントとメソッドを紐づける
+        NetworkManager.Instance.OnJoinRoomSuccess += OnJoinRoomSuccess;//部屋参加成功時
+        NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
     }
-    /**/
+
+    /*プレイヤー名決定*/
     void OnDecidePlayerName()
     {
         SetButtonsInteractable(false);
@@ -74,7 +80,7 @@ public class TitleUIController : MonoBehaviour
     {
         SetButtonsInteractable(false);
         string roomId = await NetworkManager.Instance.OnHostSelect();
-        if(roomId == null)
+        if (roomId == null)
         {
             Debug.Log("部屋作成失敗");
             SetButtonsInteractable(true);
@@ -99,9 +105,12 @@ public class TitleUIController : MonoBehaviour
     {
         SetButtonsInteractable(false);
         string roomId = await NetworkManager.Instance.OnDecideRoomId(roomIdInput.text);
-        if(roomId == null)
+        if (roomId == null)
         {
             roomIdInput.text = "";
+
+            // UIを元に戻す（部屋番号入力画面のまま）
+            RoomConnectPanelSet();
 
             //【UI】ボタンを再度押せるように戻す
             roomIdDecideButton.interactable = true;
@@ -114,12 +123,34 @@ public class TitleUIController : MonoBehaviour
             SetButtonsInteractable(true);
             return;
         }
-        else
-        {
-            SetRoomIdShow(roomIdShow, roomId);
-            AvatarSelectPanelSet();
-            SetButtonsInteractable(true);
-        }
+    }
+
+    /*部屋接続成功時*/
+    void OnJoinRoomSuccess()
+    {
+        SetRoomIdShow(roomIdShow, GameSessionData.Instance.roomId);
+        AvatarSelectPanelSet();
+        SetButtonsInteractable(true);
+    }
+
+    void OnJoinRoomFailed(string reason)
+    {
+        Debug.Log($"接続失敗: {reason}");
+
+        // 入力欄をクリア
+        roomIdInput.text = "";
+
+        // UIを元に戻す（部屋番号入力画面のまま）
+        RoomConnectPanelSet();
+
+        //【UI】ボタンを再度押せるように戻す
+        roomIdDecideButton.interactable = true;
+
+        //【UI】カーソルを入力欄に戻してあげる（PC操作の場合便利）
+        roomIdInput.ActivateInputField();
+        roomIdInput.Select();
+
+        SetButtonsInteractable(true);
     }
 
 
@@ -192,7 +223,7 @@ public class TitleUIController : MonoBehaviour
 
         //ゲーム開始ボタンの有効・無効
         //ホストならゲーム開始ボタンを有効に
-        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
+        if (GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
         {
             gameStartButton.interactable = true;
         }

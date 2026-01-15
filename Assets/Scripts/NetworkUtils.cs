@@ -1,3 +1,4 @@
+////*IPアドレス検索用スクリプト*////
 using System;
 using System.Collections;
 using System.Collections.Generic;
