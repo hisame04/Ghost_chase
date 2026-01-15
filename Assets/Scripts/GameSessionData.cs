@@ -1,3 +1,4 @@
+////*全クライアントが持つ1ゲームのデータ*////
 using System.Collections;
 using System.Collections.Generic;
 // using System.Numerics;
@@ -19,11 +20,6 @@ public class GameSessionData : MonoBehaviour
     public string serverIP;
     public string serverPort;
     public int clientPort;
-    //クライアント
-    public IGameClient _client;
-    //サーバ
-    public UdpGameServer _udpServer;
-    //public TcpGameServer _tcpServer;【TCP導入後挿入箇所】
 
     /*自分自身のデータ*/
     public int myIDNum;
@@ -32,7 +28,7 @@ public class GameSessionData : MonoBehaviour
     public string myName;
 
     /*人数*/
-    public int playerLimitNum = 8;//プレイヤー数の制限
+    public int playerLimitNum = 1;//プレイヤー数の制限
     public int playerNum = 3;//実際のプレイヤー数
 
     /*初期リスポーン時のデータ*/
@@ -54,13 +50,14 @@ public class GameSessionData : MonoBehaviour
             Destroy(gameObject); // 重複して存在しないようにする
         }
 
-        //テスト用
-        var player1 = new PlayerProfile(1,"haruru",1,3,new Vector3(10,0,10),false);
-        var player2 = new PlayerProfile(2,"natu",2,5,new Vector3(20,0,20),true);
+        //【テスト用 】
+        var player1 = new PlayerProfile(1,"haruru");
+        player1.avatarIdx =1;
+        player1.colorIdx = 3;
+        player1.firstSpawnPos = new Vector3(10,0,10);
+        player1.isTag = false;
         AllPlayers.Add(player1.id,player1);
         Debug.Log($"player1 colorIdx/{AllPlayers[player1.id].colorIdx}");
-        AllPlayers.Add(player2.id,player2);
-        Debug.Log($"player2 colorIdx/{AllPlayers[player2.id].colorIdx}");
         
     }
 
@@ -72,7 +69,7 @@ public class GameSessionData : MonoBehaviour
 
         //テスト用
         myIDNum = 0;
-        var myPlayer = new PlayerProfile(myIDNum,myName,myAvatarIndex,myColorIndex,new Vector3(0,0,0),false);
+        var myPlayer = new PlayerProfile(myIDNum,myName);
         AllPlayers.Add(myIDNum,myPlayer);
         Debug.Log($"mycolorIdx/{AllPlayers[myIDNum].colorIdx}");
     }
