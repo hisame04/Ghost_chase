@@ -49,15 +49,6 @@ public class GameSessionData : MonoBehaviour
         {
             Destroy(gameObject); // 重複して存在しないようにする
         }
-
-        //【テスト用 】
-        var player1 = new PlayerProfile(1,"haruru");
-        player1.avatarIdx =1;
-        player1.colorIdx = 3;
-        player1.firstSpawnPos = new Vector3(10,0,10);
-        player1.isTag = false;
-        AllPlayers.Add(player1.id,player1);
-        Debug.Log($"player1 colorIdx/{AllPlayers[player1.id].colorIdx}");
         
     }
 
@@ -66,12 +57,6 @@ public class GameSessionData : MonoBehaviour
     {
         myAvatarIndex = avatarIdx;
         myColorIndex = colorIdx;
-
-        //テスト用
-        myIDNum = 0;
-        var myPlayer = new PlayerProfile(myIDNum,myName);
-        AllPlayers.Add(myIDNum,myPlayer);
-        Debug.Log($"mycolorIdx/{AllPlayers[myIDNum].colorIdx}");
     }
 
     /*プレイヤー名をセットする*/

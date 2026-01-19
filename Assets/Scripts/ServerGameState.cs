@@ -15,7 +15,6 @@ public class ServerGameState
     /*プレイヤー追加メソッド*/
     public int AddPlayer(string name, System.Net.IPEndPoint ip)
     {   
-        Debug.Log(maxPlayerNum);
         if(MasterPlayers.Count >= maxPlayerNum)
         {
             Debug.LogWarning("[Server] 定員オーバーのため参加を拒否しました");
@@ -53,14 +52,14 @@ public class ServerGameState
 public class MasterPlayerData
 {
     public PlayerProfile playerProfile;
-    public IPEndPoint ClientIP;
+    public IPEndPoint clientIP;
     public float LastActiveTime;
     public bool IsReady;
 
     public MasterPlayerData(PlayerProfile profile, System.Net.IPEndPoint ip)
     {
         playerProfile = profile;
-        ClientIP = ip;
+        clientIP = ip;
         // LastActiveTime = Time.time;
     }
 }

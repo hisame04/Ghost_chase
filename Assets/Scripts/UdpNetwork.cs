@@ -14,7 +14,7 @@ using System.Security.Cryptography;
 //*サーバのクラス*//
 public class UdpGameServer
 {
-    public Action<string, IPEndPoint> OnDataReceived; 
+    public Action<string, IPEndPoint> OnDataReceived;
     private UdpClient _udpClient;
     public bool isRunning { get; private set; }
 
@@ -74,9 +74,9 @@ public class UdpGameServer
         try
         {
             var data = Encoding.UTF8.GetBytes(message);
-            _udpClient.Send(data, data.Length,remote);
+            _udpClient.Send(data, data.Length, remote);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Debug.Log($"送信エラー: {ex.Message}");
         }
@@ -111,7 +111,7 @@ public class UdpGameClient : IGameClient
             _udpClient = new UdpClient(0);
             _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
             _udpClient.Connect(_serverEndPoint);
-            _ =ListenMessageAsync();
+            _ = ListenMessageAsync();
 
             Debug.Log($"[Client] サーバに接続しました{((IPEndPoint)_udpClient.Client.LocalEndPoint).Port}");
 
@@ -164,11 +164,18 @@ public class UdpGameClient : IGameClient
         }
         catch (ObjectDisposedException)
         {
-            Debug.Log("受信待機を終了しました。");
+            Debug.Log("[client]受信待機を終了しました。");
         }
         catch (Exception ex)
         {
-            Debug.Log($"エラーが発生しました: {ex.Message}");
+            if (_udpClient != null)
+            {
+                Debug.Log($"[client]エラーが発生しました: {ex.Message}");
+            }
+            else
+            {
+                Debug.Log($"[client]クライアントが閉じられました");
+            }
             throw;
         }
     }
