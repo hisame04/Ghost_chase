@@ -8,6 +8,7 @@ using UnityEngine;
 public class ServerGameState
 {
     public int maxPlayerNum = 8;//部屋の最大人数
+    public int currentPlayerNum = 0;
     private int _nextPlayerId = 1;//作成するプレイヤーのID
     public Dictionary<int, MasterPlayerData> MasterPlayers = new Dictionary<int, MasterPlayerData>();
 
@@ -26,7 +27,7 @@ public class ServerGameState
         _nextPlayerId++;//次の人のIDに更新
 
         //公開用プロフィールを作る
-        var profile = new PlayerProfile(id,name);
+        var profile = new PlayerProfile(id,name,false);
 
         //管理用データを作る（プロフィール + IP）
         var masterData = new MasterPlayerData(profile,ip);

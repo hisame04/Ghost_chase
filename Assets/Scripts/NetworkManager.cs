@@ -45,8 +45,9 @@ public class NetworkManager : MonoBehaviour
     private CancellationTokenSource _cts;
 
     //他のスクリプトに通知を送るためのイベント
-    public event Action OnJoinRoomSuccess;
-    public event Action<string> OnJoinRoomFailed;
+    public event Action OnJoinRoomSuccess;//部屋接続成功時
+    public event Action<string> OnJoinRoomFailed;//部屋接続失敗時
+    public event Action OnMemberListUpdate;//部屋のメンバー更新時
 
 
     ////*Awake*////
@@ -250,6 +251,9 @@ public class NetworkManager : MonoBehaviour
             SetClient((int)GameSessionData.Instance.selectedProtocol);
             // 自分自身(localhost)に接続
             await _client.ConnectAsync("127.0.0.1", serverPort);
+            //自分自身に接続要求
+            var connectData = new ConnectRequestData { playerName = GameSessionData.Instance.myName };
+            SendPacketToHost(NetworkCommand.ConnectRequest, connectData);
             return true;
         }
         catch (Exception ex)
@@ -508,12 +512,17 @@ public class NetworkManager : MonoBehaviour
         OnJoinRoomSuccess?.Invoke();
     }
 
-
     //*部屋接続失敗時*//
     public void TriggerJoinRoomFailed(string reason)
     {
         DisconnectLocal();
         OnJoinRoomFailed?.Invoke(reason);
+    }
+
+    //*部屋のメンバー更新時*//
+    public void TriggerMemberListUpdate()
+    {
+        OnMemberListUpdate?.Invoke();
     }
 
     /*部屋離脱メソッド*/

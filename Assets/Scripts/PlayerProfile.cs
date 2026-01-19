@@ -14,12 +14,14 @@ public class PlayerProfile
     public int avatarIdx;   // アバターの種類 (0:Normal, 1:Robot...)
     public int colorIdx;    // 色 (0:Red, 1:Blue...)
     public bool isTag; // 最初鬼かどうか
+    public bool isReady; //準備完了かどうか
     public bool isConnectAlive; //接続しているかどうか
 
     // コンストラクタ（あると便利）
-    public PlayerProfile(int id, string name)
+    public PlayerProfile(int id, string name, bool isReady)
     {
         this.id = id;
         this.name = name;
+        this.isReady = isReady;
     }
 }

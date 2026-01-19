@@ -96,7 +96,7 @@ public class UdpGameServer
 //*クライアントのクラス*//
 public class UdpGameClient : IGameClient
 {
-    public Action<string> OnDataReceived {get; set;}
+    public Action<string> OnDataReceived { get; set; }
     private UdpClient _udpClient;
     private IPEndPoint _serverEndPoint;
 
@@ -193,6 +193,12 @@ public class UdpGameClient : IGameClient
         _udpClient?.Close();
         _udpClient = null;
         Debug.Log("[Client] 停止しました");
+    }
+
+    /*UDPClientのIPアドレスを返すメソッド*/
+    public IPEndPoint ClientUseIP()
+    {
+        return (IPEndPoint)_udpClient.Client.LocalEndPoint;
     }
 
 }

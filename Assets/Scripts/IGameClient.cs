@@ -15,5 +15,6 @@ public interface IGameClient
     Task ConnectAsync(string ip, int port);
     void SendMessage(string message);
     void Close();
+    IPEndPoint ClientUseIP();
     // ConcurrentQueue<string> ReceiveQueue { get; }
 }

@@ -26,6 +26,7 @@ public class GameSessionData : MonoBehaviour
     public int myAvatarIndex;
     public int myColorIndex;
     public string myName;
+    public bool isReady;
 
     /*人数*/
     public int playerLimitNum = 1;//プレイヤー数の制限

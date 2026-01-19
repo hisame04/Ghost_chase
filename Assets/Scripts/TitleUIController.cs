@@ -28,6 +28,8 @@ public class TitleUIController : MonoBehaviour
     public TMP_InputField roomIdShow;//部屋番号を入力する欄
     public TMP_Text myPlayerNameText;//部屋にいるプレイヤーの人数を表示するテキスト
     public TMP_Text roomPlayerNumText;//部屋にいるプレイヤーの人数を表示するテキスト
+    public TMP_Text[] memberNameText;//部屋にいるプレイヤーの名前を表示するテキスト
+    public GameObject[] memberReadyImage;//部屋にいるプレイヤーが準備完了の場合表示する画像
 
 
     // Start is called before the first frame update
@@ -45,6 +47,13 @@ public class TitleUIController : MonoBehaviour
         //NetworkManagerのイベントとメソッドを紐づける
         NetworkManager.Instance.OnJoinRoomSuccess += OnJoinRoomSuccess;//部屋参加成功時
         NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
+        NetworkManager.Instance.OnMemberListUpdate += OnMemberListUpdate;//参加者の更新時
+
+        for (int i = 0; i < GameSessionData.Instance.playerLimitNum; i++)
+        {
+            memberReadyImage[i].SetActive(false);
+            memberNameText[i].gameObject.SetActive(false);
+        }
     }
 
     /*プレイヤー名決定*/
@@ -133,6 +142,7 @@ public class TitleUIController : MonoBehaviour
         SetButtonsInteractable(true);
     }
 
+    /*部屋接続失敗時*/
     void OnJoinRoomFailed(string reason)
     {
         Debug.Log($"接続失敗: {reason}");
@@ -151,6 +161,33 @@ public class TitleUIController : MonoBehaviour
         roomIdInput.Select();
 
         SetButtonsInteractable(true);
+    }
+
+    /*参加プレイヤーの更新*/
+    void OnMemberListUpdate()
+    {
+        int i = 0;
+        //UIのプレイヤー名一覧をデータの全プレイヤーデータの名前に更新
+        foreach (var player in GameSessionData.Instance.AllPlayers)
+        {
+            memberNameText[i].gameObject.SetActive(true);
+            memberNameText[i].text = player.Value.name;
+            //準備完了な場合
+            if (player.Value.isReady)
+            {
+                memberReadyImage[i].SetActive(true);
+                Debug.Log($"{i}番目のユーザ準備完了");
+            }
+            else
+            {
+                memberReadyImage[i].SetActive(false);
+                Debug.Log($"{i}番目のユーザ準備未完了");
+            }
+            i += 1;
+        }
+        //部屋の参加人数の更新
+        roomPlayerNumText.text = $"{GameSessionData.Instance.AllPlayers.Count.ToString()}/{GameSessionData.Instance.playerLimitNum}";
+        i = 0;
     }
 
 

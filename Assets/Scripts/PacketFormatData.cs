@@ -6,29 +6,30 @@ using UnityEngine;
 // 通信メッセージの種類
 public enum NetworkCommand
 {
-    ConnectRequest,    // 接続要求
-    ConnectResponse, //接続応答
-    ConnectRefused, //接続失敗
-    Disconnect, //切断通知
-    SendAvatarData, //プレイヤー基本情報(アバターなど)
-    AllPlayerListUpdate, //部屋に参加しているプレイヤー情報
-    GameStart,  // ゲーム開始
-    // Move,       // 位置情報
-    //Action //タッチ
-    //WorldStateUpdate //プレイヤーの位置と状態更新
+    ConnectRequest,//【from Client】接続要求
+    ConnectResponse,//【from Host】接続応答
+    ConnectRefused,//【from Host】接続失敗
+    ConnectAnounce,//【from Host】接続通知
+    Disconnect,//【from Host】【from Client】切断通知
+    SendAvatarData,//【from Client】プレイヤー基本情報(アバターなど)
+    AllPlayerListUpdate,//【from Host】部屋に参加しているプレイヤー情報
+    GameStart,//【from Host】ゲーム開始
+    // Move,       //【from Client】 位置情報
+    //Action //【from Client】タッチ
+    //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新
     // ... 今後追加
 }
 
-[System.Serializable]
 /*パケットの基本形*/
+[System.Serializable]
 public class GamePacket
 {
     public NetworkCommand command; // 何の用事か
     public string dataJson;        // 中身（さらに別のクラスをJSONにしたもの）
 }
 
-[System.Serializable]
 /*接続時に送るデータの中身*/
+[System.Serializable]
 public class ConnectRequestData
 {
     public string playerName; // プレイヤー名
@@ -36,29 +37,66 @@ public class ConnectRequestData
 }
 
 /*接続成功として送るデータの中身*/
+[System.Serializable]
 public class ConnectResponseData
 {
-    public int roomId; //部屋番号
+    public string roomId; //部屋番号
     public int playerId; //プレイヤーに割り当てたID番号
+    public List<LobbyPlayerData> firstPlayerList; //部屋に参加しているプレイヤーのリスト
 }
 
 /*接続失敗として送るデータの中身*/
+[System.Serializable]
 public class ConnectRefusedData
 {
     public string reason; //接続できない理由
 }
 
 /*切断時に送るデータの中身*/
+[System.Serializable]
 public class DisconnectData
 {
     public int playerId;
 }
 
 /*ホストに送るアバターデータの中身*/
+[System.Serializable]
 public class SendAvatarData
 {
-    
+    public int id;
+    public bool isReady;
+    public int avatarIdx;
+    public int colorIdx;
+    public SendAvatarData(int id,bool isReady,int avatarIdx,int colorIdx)
+    {
+        this.id = id;
+        this.isReady = isReady;
+        this.avatarIdx = avatarIdx;
+        this.colorIdx = colorIdx;
+    }
 }
+
+/*ホストがロビーでクライアントに送る1人分のプレイヤーデータ*/
+[System.Serializable]
+public class LobbyPlayerData
+{
+    public int id;
+    public string name;
+    public bool isReady;
+    public LobbyPlayerData(int id,string name,bool isReady)
+    {
+        this.id = id;
+        this.name = name;
+        this.isReady = isReady;
+    }
+}
+
+/*ホストがロビーでクライアントに送る1人分のプレイヤーデータ*/
+public class LobbyPlayerListData
+{
+    public LobbyPlayerData[] playerList;
+}
+
 
 [System.Serializable]
 /*ホストがfirebaseにIPアドレスのデータを登録するためのクラス*/

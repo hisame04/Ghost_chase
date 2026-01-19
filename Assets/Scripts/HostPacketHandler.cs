@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Net;
 using System.Xml.Serialization;
+using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 
 public class HostPacketHandler
 {
@@ -42,6 +43,7 @@ public class HostPacketHandler
         int resId = _manager.ServerState.AddPlayer(data.playerName, sender);
 
         //人数が満員かどうかチェック
+        //接続不可だった場合
         if(resId == -1)
         {
             Debug.Log($"拒否: {sender} からの接続（満員）");
@@ -52,9 +54,30 @@ public class HostPacketHandler
 
         Debug.Log($"接続要求：{_manager.ServerState.MasterPlayers[resId].playerProfile.name}");
 
-        //接続要求に対する返答の送信
-        var connectResponseData = new ConnectResponseData {playerId = resId};
+        //接続可能だった場合
+        
+        List<LobbyPlayerData> currentPlayerList = new List<LobbyPlayerData>();
+        foreach (var player in _manager.ServerState.MasterPlayers)
+        {
+            int id = player.Value.playerProfile.id;
+            string name = player.Value.playerProfile.name;
+            bool isReady = player.Value.IsReady;
+            LobbyPlayerData playerData = new LobbyPlayerData(id,name,isReady);
+
+            currentPlayerList.Add(playerData);
+        }
+
+        //接続応答の送信
+        var connectResponseData = new ConnectResponseData {roomId = GameSessionData.Instance.roomId, playerId = resId, firstPlayerList = currentPlayerList};
+        Debug.Log($"[Check JSON ConnectAnounce]{JsonUtility.ToJson(connectResponseData)}");
         _manager.SendPacketToClient(NetworkCommand.ConnectResponse, connectResponseData, sender);
+
+        //接続者のデータの送信
+        var connectPlayerData = new LobbyPlayerData(resId,data.playerName,false);
+        foreach (var player in _manager.ServerState.MasterPlayers)
+        {
+            _manager.SendPacketToClient(NetworkCommand.ConnectAnounce,connectPlayerData, player.Value.clientIP);
+        }
     }
 
 }
