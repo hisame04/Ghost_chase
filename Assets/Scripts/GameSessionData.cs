@@ -17,9 +17,9 @@ public class GameSessionData : MonoBehaviour
     public RoleType selectedRole;
     //IPアドレス情報
     public string roomId;
-    public string serverIP;
-    public string serverPort;
-    public int clientPort;
+    // public string serverIP;
+    // public string serverPort;
+    // public int clientPort;
 
     /*自分自身のデータ*/
     public int myIDNum;
@@ -29,12 +29,8 @@ public class GameSessionData : MonoBehaviour
     public bool isReady;
 
     /*人数*/
-    public int playerLimitNum = 1;//プレイヤー数の制限
+    public int playerLimitNum = 6;//プレイヤー数の制限
     public int playerNum = 3;//実際のプレイヤー数
-
-    /*初期リスポーン時のデータ*/
-    public Vector3[] spawnPos;//接続人数が確定次第PlayerProfileに流し込む
-    public int[] avatarIdx;//ホストが全員から集め次第配ってPlayerProfileに流し込む
 
     /*全プレイヤーのデータ*/
     public Dictionary<int, PlayerProfile> AllPlayers = new Dictionary<int, PlayerProfile>();
@@ -53,11 +49,31 @@ public class GameSessionData : MonoBehaviour
         
     }
 
+    /*自分のデータを初期化*/
+    public void ResetGameSessionMyData(int id)
+    {
+        SetPlayerIdNum(id);
+        SetMyAvatarIdx(0);
+        SetMyColorIdx(0);
+        isReady=false;
+    }
 
-    public void SetMyAvatar(int avatarIdx, int colorIdx)
+    /*自分のアバター番号をセットする*/
+    public void SetMyAvatarIdx(int avatarIdx)
     {
         myAvatarIndex = avatarIdx;
+    }
+
+    /*自分の色番号をセットする*/
+    public void SetMyColorIdx(int colorIdx)
+    {
         myColorIndex = colorIdx;
+    }
+
+    /*プレイヤーIDをセットする*/
+    public void SetPlayerIdNum(int id)
+    {
+        myIDNum = id;
     }
 
     /*プレイヤー名をセットする*/
@@ -65,6 +81,7 @@ public class GameSessionData : MonoBehaviour
     {
         myName = playerName;
     }
+
     /*プロトコルセット*/
     public void SetProtcol(int protcol)
     {
@@ -86,7 +103,7 @@ public class GameSessionData : MonoBehaviour
         Debug.Log($"SetRoomId:{GameSessionData.Instance.roomId}");
     }
 
-    //id指定でプレイヤーの情報(PlayerProfile)を探す
+    /*id指定でプレイヤーの情報(PlayerProfile)を探す*/
     public PlayerProfile GetPlayer(int id)
     {
         if (AllPlayers.ContainsKey(id))
@@ -95,4 +112,5 @@ public class GameSessionData : MonoBehaviour
         }
         return null;
     }
+
 }

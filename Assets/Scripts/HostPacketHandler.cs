@@ -30,7 +30,9 @@ public class HostPacketHandler
                 break;
             case NetworkCommand.SendAvatarData:
                 // クライアントのアバターデータ受信処理
+                HandleSendAvatarData(packet.dataJson, sender);
                 break;
+            
         }
     }
 
@@ -61,7 +63,7 @@ public class HostPacketHandler
         {
             int id = player.Value.playerProfile.id;
             string name = player.Value.playerProfile.name;
-            bool isReady = player.Value.IsReady;
+            bool isReady = player.Value.isReady;
             LobbyPlayerData playerData = new LobbyPlayerData(id,name,isReady);
 
             currentPlayerList.Add(playerData);
@@ -74,9 +76,31 @@ public class HostPacketHandler
 
         //接続者のデータの送信
         var connectPlayerData = new LobbyPlayerData(resId,data.playerName,false);
-        foreach (var player in _manager.ServerState.MasterPlayers)
+        _manager.BroadPacketToAllClient(NetworkCommand.ConnectAnnounce,connectPlayerData);
+        
+    }
+
+    private void HandleSendAvatarData(string dataJson, IPEndPoint sender)
+    {
+        //受け取ったデータをアバターデータのクラスに戻す
+        SendAvatarData data = JsonUtility.FromJson<SendAvatarData>(dataJson);
+
+        PlayerProfile player =_manager.ServerState.GetPlayer(data.id);//データのidと同じプレイヤーを探す
+
+        if (player != null)
         {
-            _manager.SendPacketToClient(NetworkCommand.ConnectAnounce,connectPlayerData, player.Value.clientIP);
+            //PlayerProfileの書き換え
+            player.isReady=data.isReady;
+            player.avatarIdx=data.avatarIdx;
+            player.colorIdx=data.colorIdx;
+
+            //準備完了が何人かのチェック&UIの更新
+            bool canStart = _manager.ServerState.CheckReadyNum();
+            _manager.TriggerHostAllReady(canStart);
+
+            _manager.BroadPacketToAllClient(NetworkCommand.ReadyAnnounce,new LobbyPlayerData(player.id, player.name, player.isReady));
+
+            Debug.Log($"[Host]準備完了(アバターデータ更新) id:{player.id} avatarIdx:{player.avatarIdx} colorIdx:{player.colorIdx}");
         }
     }
 

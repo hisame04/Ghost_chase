@@ -505,6 +505,13 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    //*ホストにアバター情報を送る*//
+    public void SendAvatarDataToHost()
+    {
+        var avatarData = new SendAvatarData(GameSessionData.Instance.myIDNum,GameSessionData.Instance.isReady,GameSessionData.Instance.myAvatarIndex,GameSessionData.Instance.myColorIndex);
+        SendPacketToHost(NetworkCommand.SendAvatarData,avatarData);
+        Debug.Log($"[Client]　アバター情報送信 id:{avatarData.id} isReady:{avatarData.isReady}");
+    }
 
     //*部屋接続成功時*//
     public void TriggerJoinRoomSuccess()
@@ -634,6 +641,44 @@ public class NetworkManager : MonoBehaviour
             // if(_tcpServer != null)
             // {
             //     _tcpServer.SendMessage(finalJson, remote);
+            // }
+        }
+    }
+
+    public void BroadPacketToAllClient(NetworkCommand command, object dataObj)
+    {
+        //中身をJSON化
+        string bodyJson = JsonUtility.ToJson(dataObj);
+
+        //パケット作成
+        GamePacket packet = new GamePacket();
+        packet.command = command;
+        packet.dataJson = bodyJson;
+
+        //パケットをJSON化して送信
+        string finalJson = JsonUtility.ToJson(packet);
+
+        //UDPを選択した場合
+        if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.UDP)
+        {
+            if (_udpServer != null)
+            {
+                foreach(var player in ServerState.MasterPlayers)
+                {
+                    _udpServer.SendMessage(finalJson, player.Value.clientIP);
+                    Debug.Log($"一斉送信：to {player.Value.clientIP}");
+                }
+            }
+        }
+        //TCPを選択した場合
+        else if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.TCP)
+        {
+            // if(_tcpServer != null)
+            // {
+                // foreach(var player in ServerState.MasterPlayers)
+                // {
+                //     _tcpServer.SendMessage(finalJson, remote);
+                // }
             // }
         }
     }

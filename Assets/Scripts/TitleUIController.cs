@@ -23,6 +23,12 @@ public class TitleUIController : MonoBehaviour
     public Button clientButton;//部屋に入るのを選択する(クライアント用)ボタン
     public Button roomIdDecideButton;//部屋番号を指定して決定するボタン
     public Button gameStartButton;//ゲーム開始ボタン
+    public Button readyButton;//準備完了ボタン
+
+    public Button nextAvatarButton;//次のアバターへのボタン
+    public Button prevAvatarButton;//前のアバターへのボタン
+    public Button[] colorButtons;//色変更のボタン
+
     public TMP_InputField playerNameInput;//プレイヤー名を入力する欄
     public TMP_InputField roomIdInput;//部屋番号を入力する欄
     public TMP_InputField roomIdShow;//部屋番号を入力する欄
@@ -32,27 +38,44 @@ public class TitleUIController : MonoBehaviour
     public GameObject[] memberReadyImage;//部屋にいるプレイヤーが準備完了の場合表示する画像
 
 
-    // Start is called before the first frame update
+    /*Start*/
     void Start()
     {
         PlayerNamePanelSet();
         //【UI】ボタンの設定
-        nameDecideButton.onClick.AddListener(OnDecidePlayerName);
-        udpButton.onClick.AddListener(OnSelectUDP);
-        tcpButton.onClick.AddListener(OnSelectTCP);
-        hostButton.onClick.AddListener(OnHostSelect);
-        clientButton.onClick.AddListener(OnClientSelect);
-        roomIdDecideButton.onClick.AddListener(OnDecideRoomId);
+        nameDecideButton.onClick.AddListener(OnDecidePlayerName);//名前決定時ボタン
+        udpButton.onClick.AddListener(OnSelectUDP);//UDP選択用ボタン
+        tcpButton.onClick.AddListener(OnSelectTCP);//TCP選択用ボタン
+        hostButton.onClick.AddListener(OnHostSelect);//部屋を作成するのを選択する(ホスト)用ボタン
+        clientButton.onClick.AddListener(OnClientSelect);//部屋に入るのを選択する(クライアント用)ボタン
+        roomIdDecideButton.onClick.AddListener(OnDecideRoomId);//部屋番号を指定して決定するボタン
+        readyButton.onClick.AddListener(OnReady);//準備完了ボタン
 
         //NetworkManagerのイベントとメソッドを紐づける
         NetworkManager.Instance.OnJoinRoomSuccess += OnJoinRoomSuccess;//部屋参加成功時
         NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
         NetworkManager.Instance.OnMemberListUpdate += OnMemberListUpdate;//参加者の更新時
+        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host){
+            NetworkManager.Instance.OnHostAllReady += UpdateStartButtonState;//参加者の更新時
+        }
 
         for (int i = 0; i < GameSessionData.Instance.playerLimitNum; i++)
         {
             memberReadyImage[i].SetActive(false);
             memberNameText[i].gameObject.SetActive(false);
+        }
+    }
+
+    /*Destory オブジェクト破壊時*/
+    void OnDestroy()
+    {
+        if (NetworkManager.Instance != null)
+        {
+            //イベント解除
+            NetworkManager.Instance.OnJoinRoomSuccess -= OnJoinRoomSuccess;
+            NetworkManager.Instance.OnJoinRoomFailed -= OnJoinRoomFailed;
+            NetworkManager.Instance.OnMemberListUpdate -= OnMemberListUpdate;
+            NetworkManager.Instance.OnHostAllReady -= UpdateStartButtonState;
         }
     }
 
@@ -134,6 +157,17 @@ public class TitleUIController : MonoBehaviour
         }
     }
 
+    /*準備完了が押されたとき*/
+    public void OnReady()
+    {
+        if (!GameSessionData.Instance.isReady)
+        {
+            GameSessionData.Instance.isReady = true;//自分のデータを準備完了にする
+            readyButton.interactable = false;//準備完了ボタンを無効化する
+        }
+        SelectAvatarInteractable(false);//アバター変更ボタンの無効化
+        NetworkManager.Instance.SendAvatarDataToHost();//ホストに決定したアバターデータを送る
+    }
     /*部屋接続成功時*/
     void OnJoinRoomSuccess()
     {
@@ -269,5 +303,22 @@ public class TitleUIController : MonoBehaviour
         {
             gameStartButton.interactable = false;
         }
+    }
+
+    /*アバター変更ボタンの有効化・無効化*/
+    void SelectAvatarInteractable(bool state)
+    {
+        nextAvatarButton.interactable = state;
+        prevAvatarButton.interactable = state;
+        foreach(Button colorButton in colorButtons)
+        {
+            colorButton.interactable = state;
+        }
+    }
+
+    /*ゲーム開始ボタンの有効化・無効化*/
+    void GameStartButtonInteractable(bool status)
+    {
+        gameStartButton.interactable = status;
     }
 }

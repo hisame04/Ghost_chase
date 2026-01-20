@@ -9,11 +9,11 @@ public enum NetworkCommand
     ConnectRequest,//【from Client】接続要求
     ConnectResponse,//【from Host】接続応答
     ConnectRefused,//【from Host】接続失敗
-    ConnectAnounce,//【from Host】接続通知
+    ConnectAnnounce,//【from Host】接続通知
     Disconnect,//【from Host】【from Client】切断通知
     SendAvatarData,//【from Client】プレイヤー基本情報(アバターなど)
-    AllPlayerListUpdate,//【from Host】部屋に参加しているプレイヤー情報
     GameStart,//【from Host】ゲーム開始
+    ReadyAnnounce,//【from Host】部屋に参加しているプレイヤーが準備完了の場合
     // Move,       //【from Client】 位置情報
     //Action //【from Client】タッチ
     //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新

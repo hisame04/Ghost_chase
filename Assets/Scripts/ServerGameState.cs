@@ -47,6 +47,18 @@ public class ServerGameState
             MasterPlayers[playerId].playerProfile.currentPos = pos;
         }
     }
+
+    /*id指定でプレイヤーの情報(PlayerProfile)を探す*/
+    public PlayerProfile GetPlayer(int id)
+    {
+        if (MasterPlayers.ContainsKey(id))
+        {
+            Debug.Log($"[ServerGameState]{id}のプレイヤーを取得");
+            return MasterPlayers[id].playerProfile;
+        }
+        Debug.Log($"[ServerGameState]{id}のプレイヤーは存在しません");
+        return null;
+    }
 }
 
 //*サーバのみが持つクライアントの情報*//
@@ -54,8 +66,8 @@ public class MasterPlayerData
 {
     public PlayerProfile playerProfile;
     public IPEndPoint clientIP;
-    public float LastActiveTime;
-    public bool IsReady;
+    public float lastActiveTime;
+    public bool isReady;
 
     public MasterPlayerData(PlayerProfile profile, System.Net.IPEndPoint ip)
     {
