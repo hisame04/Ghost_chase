@@ -48,6 +48,7 @@ public class NetworkManager : MonoBehaviour
     public event Action OnJoinRoomSuccess;//部屋接続成功時
     public event Action<string> OnJoinRoomFailed;//部屋接続失敗時
     public event Action OnMemberListUpdate;//部屋のメンバー更新時
+    public event Action<bool> OnHostAllReady;//全員が準備完了した時
 
 
     ////*Awake*////
@@ -188,7 +189,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     //*クライアント選択時の処理*//
-    public async void OnClientSelect()
+    public void OnClientSelect()
     {
         //選択したロールをデータにセット
         GameSessionData.Instance.SetRole((int)GameSessionData.RoleType.Client);
@@ -532,6 +533,35 @@ public class NetworkManager : MonoBehaviour
         OnMemberListUpdate?.Invoke();
     }
 
+    //*全員準備完了になった時*//
+    public void TriggerHostAllReady(bool isAllReady)
+    {
+        OnHostAllReady?.Invoke(isAllReady);
+    }
+
+    //*ゲーム開始時*//
+    public void OnGameStart()
+    {
+        ServerState.DecideInitialGameData();//初期設定項目の設定
+
+        //ホストのマスターデータから配布用のデータを作成
+        List<GameStartPlayerData> playerList = new List<GameStartPlayerData>();
+        foreach(var player in ServerState.MasterPlayers)
+        {
+            var profile = player.Value.playerProfile;
+            GameStartPlayerData playerData = new GameStartPlayerData(profile.id,profile.avatarIdx,profile.colorIdx,profile.firstSpawnPos,profile.isTag);
+
+            playerList.Add(playerData);
+        }
+
+        //ステージの送信(ステージを増やした時ここで変更)
+        string stage = "Stage1";
+
+        //作成したリストを全クライアントに送信
+        GameStartPlayerDataList initialData = new GameStartPlayerDataList(playerList,stage);
+        BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
+    }
+
     /*部屋離脱メソッド*/
     public void LeaveRoom()
     {
@@ -554,7 +584,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*通信切断用のメソッド*/
-    private void DisconnectLocal()
+    public void DisconnectLocal()
     {
         // キャンセルトークンを止める
         _cts?.Cancel();

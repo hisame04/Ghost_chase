@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ClientPacketHandler
 {
@@ -39,6 +40,7 @@ public class ClientPacketHandler
                 break;
             case NetworkCommand.GameStart:
                 //ゲーム開始時の処理
+                HandleGameStart(packet.dataJson);
                 break;
         }
     }
@@ -57,7 +59,7 @@ public class ClientPacketHandler
         GameSessionData.Instance.roomId = data.roomId;
         GameSessionData.Instance.ResetGameSessionMyData(data.playerId);//GameSessionDataの自身のデータを初期化
 
-        // //プレイヤーリストの初期化
+        // //プレイヤーリストの初期追加
         foreach (var player in data.firstPlayerList)
         {
             GameSessionData.Instance.AllPlayers.Add(player.id, new PlayerProfile(player.id, player.name, player.isReady));
@@ -107,6 +109,31 @@ public class ClientPacketHandler
         }
     }
 
+    private void HandleGameStart(string dataJson)
+    {
+        GameStartPlayerDataList data = JsonUtility.FromJson<GameStartPlayerDataList>(dataJson);
+        Debug.Log($"[client] ゲーム開始通知受信 player数：{data.startPlayerList.Count}");
+
+        //受け取ったデータを自分のローカルのデータに同期
+        foreach (var masterData in data.startPlayerList)
+        {
+            int id = masterData.id;
+            PlayerProfile playerData = GameSessionData.Instance.GetPlayer(id);
+            if (playerData == null)
+            {
+                Debug.Log($"[client]id:{id}のプレイヤーが存在しません");
+                return;
+            }
+
+            playerData.avatarIdx = masterData.avatarIdx;
+            playerData.colorIdx = masterData.colorIdx;
+            playerData.isTag = masterData.isTag;
+            playerData.firstSpawnPos = masterData.startPos;
+
+            Debug.Log($"[client] 初期データセット プレイヤーid:{playerData.id},avatar:{playerData.avatarIdx},color{playerData.colorIdx},isTag{playerData.isTag},firstPos:{playerData.firstSpawnPos}");
         }
+
+        //ホストの選択したゲームステージシーンに遷移
+        SceneManager.LoadScene(data.stage);
     }
 }

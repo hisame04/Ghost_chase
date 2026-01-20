@@ -29,6 +29,10 @@ public class TitleUIController : MonoBehaviour
     public Button prevAvatarButton;//前のアバターへのボタン
     public Button[] colorButtons;//色変更のボタン
 
+    public Button backToNamePanelButton;//名前入力画面に戻るボタン
+    public Button backToProtcolPanelButton;//プロトコル選択画面に戻るボタン
+    public Button backToRolePanelButton;//ロール選択画面に戻るボタン
+
     public TMP_InputField playerNameInput;//プレイヤー名を入力する欄
     public TMP_InputField roomIdInput;//部屋番号を入力する欄
     public TMP_InputField roomIdShow;//部屋番号を入力する欄
@@ -50,6 +54,11 @@ public class TitleUIController : MonoBehaviour
         clientButton.onClick.AddListener(OnClientSelect);//部屋に入るのを選択する(クライアント用)ボタン
         roomIdDecideButton.onClick.AddListener(OnDecideRoomId);//部屋番号を指定して決定するボタン
         readyButton.onClick.AddListener(OnReady);//準備完了ボタン
+        gameStartButton.onClick.AddListener(OnGameStart);//ゲーム開始ボタン
+
+        backToNamePanelButton.onClick.AddListener(OnBackToNamePanel);//名前入力画面に戻るボタン
+        backToProtcolPanelButton.onClick.AddListener(OnBackToProtcolPanel);//プロトコル選択画面に戻るボタン
+        backToRolePanelButton.onClick.AddListener(OnBackToRolePanel);//ロール選択画面に戻るボタン
 
         //NetworkManagerのイベントとメソッドを紐づける
         NetworkManager.Instance.OnJoinRoomSuccess += OnJoinRoomSuccess;//部屋参加成功時
@@ -168,6 +177,33 @@ public class TitleUIController : MonoBehaviour
         SelectAvatarInteractable(false);//アバター変更ボタンの無効化
         NetworkManager.Instance.SendAvatarDataToHost();//ホストに決定したアバターデータを送る
     }
+
+    /*ゲーム開始が押された時*/
+    public void OnGameStart()
+    {
+        NetworkManager.Instance.OnGameStart();
+    }
+
+    /*名前入力に戻るボタンが押された時*/
+    public void OnBackToNamePanel()
+    {
+        PlayerNamePanelSet();
+    }
+
+    /*プロトコル選択に戻るボタンが押された時*/
+    public void OnBackToProtcolPanel()
+    {
+        ProtcolSelectPanelSet();
+    }
+
+    /*ロール選択に戻るボタンが押された時*/
+    public void OnBackToRolePanel()
+    {
+        RoleSelectPanelSet();
+        NetworkManager.Instance.DisconnectLocal();
+    }
+
+    //*イベントを受け取った際に呼び出す(Udp/TcpNetwork → NetworkManager → TitleUIController)*//
     /*部屋接続成功時*/
     void OnJoinRoomSuccess()
     {
@@ -222,6 +258,16 @@ public class TitleUIController : MonoBehaviour
         //部屋の参加人数の更新
         roomPlayerNumText.text = $"{GameSessionData.Instance.AllPlayers.Count.ToString()}/{GameSessionData.Instance.playerLimitNum}";
         i = 0;
+    }
+
+    /*準備完了人数チェック*/
+    void UpdateStartButtonState(bool isAllReady)
+    {
+        if(gameStartButton != null)
+        {
+            GameStartButtonInteractable(isAllReady);
+            Debug.Log($"[UI]全員準備完了{isAllReady}");
+        }
     }
 
 
@@ -293,15 +339,16 @@ public class TitleUIController : MonoBehaviour
         selectAvatarPanel.SetActive(true);
 
         //ゲーム開始ボタンの有効・無効
-        //ホストならゲーム開始ボタンを有効に
+        //ホストならゲーム開始ボタンを表示
         if (GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
         {
-            gameStartButton.interactable = true;
+            gameStartButton.gameObject.SetActive(true);
+            gameStartButton.interactable = false;
         }
-        //クライアントならゲーム開始ボタンを無効に
+        //クライアントならゲーム開始ボタンを非表示に
         else
         {
-            gameStartButton.interactable = false;
+            gameStartButton.gameObject.SetActive(false);
         }
     }
 

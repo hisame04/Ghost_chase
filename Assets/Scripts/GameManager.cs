@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
+
     [SerializeField] float limitTime = 60f;
     [SerializeField] float waitStartTime = 3f;
     [SerializeField] float timeCount;
@@ -15,6 +17,21 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject[] players;
     [SerializeField] UIController uIController;
     // Start is called before the first frame update
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            //インスタンスを自身に設定
+            Instance = this;
+        }
+        else
+        {
+            //重複防止
+            Destroy(gameObject);
+        }
+    }
+
     void Start()
     {
         whoTagger = firstTagger;

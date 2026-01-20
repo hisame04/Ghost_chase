@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PlayerStatusController : MonoBehaviour
 {
-    public GameManager gameManager;
     public bool isTagger;
     // Start is called before the first frame update
     void Start()

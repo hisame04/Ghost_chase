@@ -12,8 +12,8 @@ public enum NetworkCommand
     ConnectAnnounce,//【from Host】接続通知
     Disconnect,//【from Host】【from Client】切断通知
     SendAvatarData,//【from Client】プレイヤー基本情報(アバターなど)
-    GameStart,//【from Host】ゲーム開始
     ReadyAnnounce,//【from Host】部屋に参加しているプレイヤーが準備完了の場合
+    GameStart,//【from Host】ゲーム開始(全プレイヤーの初期データを送る)
     // Move,       //【from Client】 位置情報
     //Action //【from Client】タッチ
     //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新
@@ -73,6 +73,38 @@ public class SendAvatarData
         this.isReady = isReady;
         this.avatarIdx = avatarIdx;
         this.colorIdx = colorIdx;
+    }
+}
+
+/*ゲーム開始時にホストが全プレイヤーに配るデータ*/
+[System.Serializable]
+public class GameStartPlayerDataList
+{
+    public List<GameStartPlayerData> startPlayerList;
+    public string stage;
+    public GameStartPlayerDataList(List<GameStartPlayerData> startPlayerList,string stage)
+    {
+        this.startPlayerList = startPlayerList;
+        this.stage = stage;
+    }
+}
+
+//ゲーム開始時のプレイヤー(1人)の情報
+[System.Serializable]
+public class GameStartPlayerData
+{
+    public int id;
+    public int avatarIdx;
+    public int colorIdx;
+    public Vector3 startPos;
+    public bool isTag;
+    
+    public GameStartPlayerData(int id, int avatarIdx,int colorIdx, Vector3 startPos,bool isTag){
+        this.id = id;
+        this.avatarIdx = avatarIdx;
+        this.colorIdx = colorIdx;
+        this.startPos = startPos;
+        this.isTag = isTag;
     }
 }
 
