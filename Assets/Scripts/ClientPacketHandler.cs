@@ -23,7 +23,7 @@ public class ClientPacketHandler
         switch (packet.command)
         {
             case NetworkCommand.ConnectResponse:
-                // 接続成功したときの処理
+                //接続成功したときの処理
                 HandleConnectResponse(packet.dataJson);
                 break;
             case NetworkCommand.ConnectRefused:
@@ -41,6 +41,10 @@ public class ClientPacketHandler
             case NetworkCommand.GameStart:
                 //ゲーム開始時の処理
                 HandleGameStart(packet.dataJson);
+                break;
+            case NetworkCommand.TagChange:
+                //鬼の交代通知の処理
+                HandleTagChange(packet.dataJson);
                 break;
         }
     }
@@ -125,15 +129,51 @@ public class ClientPacketHandler
                 return;
             }
 
+            //GameSessionDataのデータの値の更新
             playerData.avatarIdx = masterData.avatarIdx;
             playerData.colorIdx = masterData.colorIdx;
             playerData.isTag = masterData.isTag;
             playerData.firstSpawnPos = masterData.startPos;
 
             Debug.Log($"[client] 初期データセット プレイヤーid:{playerData.id},avatar:{playerData.avatarIdx},color{playerData.colorIdx},isTag{playerData.isTag},firstPos:{playerData.firstSpawnPos}");
+            if(masterData.isTag)
+            {
+                Debug.Log($"id:{masterData.id}の人が鬼");        
+            }        
         }
 
         //ホストの選択したゲームステージシーンに遷移
         SceneManager.LoadScene(data.stage);
+    }
+
+    public void HandleTagChange(string dataJson)
+    {
+        TagChangeData data = JsonUtility.FromJson<TagChangeData>(dataJson);
+        Debug.Log($"[client] 受信:TagChange {data.playerTagList}");
+
+        foreach(var player in data.playerTagList)
+        {
+            if(GameSessionData.Instance.GetPlayer(player.id) == null)//idのプレイヤーが存在しない場合
+            {
+                Debug.Log($"id{player.id}のプレイヤーは存在しません");
+                return;
+            }
+
+            GameSessionData.Instance.GetPlayer(player.id).isTag = player.isTag;//データの情報を更新
+
+            if(player.id == GameSessionData.Instance.myIDNum)
+            {
+                _manager.TriggerTagChange(player.isTag);//ClientPacketHandler→NetworkManager→UIControllerで鬼用UIの表示・非表示切り替えのメソッドを呼び出す
+
+                if (player.isTag)
+                {
+                    Debug.Log("[client]あなたが鬼です");
+                }
+                else
+                {
+                    Debug.Log("[client] 鬼ではありません");
+                }
+            }
+        }
     }
 }

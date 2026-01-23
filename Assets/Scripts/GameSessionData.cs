@@ -17,9 +17,6 @@ public class GameSessionData : MonoBehaviour
     public RoleType selectedRole;
     //IPアドレス情報
     public string roomId;
-    // public string serverIP;
-    // public string serverPort;
-    // public int clientPort;
 
     /*自分自身のデータ*/
     public int myIDNum;

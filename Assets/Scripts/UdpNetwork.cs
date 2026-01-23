@@ -44,7 +44,12 @@ public class UdpGameServer
                 var buffer = result.Buffer;
                 var remote = result.RemoteEndPoint;
                 //受信したデータ(バイト)を文字列に変換
-                var data = Encoding.UTF8.GetString(buffer);
+                var data = Encoding.UTF8.GetString(buffer).Replace("\0", "").Trim();
+                //空のデータだった場合は処理しない
+                if (string.IsNullOrEmpty(data))
+                {
+                    continue;
+                }
                 //OnRecieveメソッド(受信イベント)の実行
                 this.OnRecieve(data, remote);
             }
@@ -155,9 +160,18 @@ public class UdpGameClient : IGameClient
             while (_udpClient != null)
             {
                 var result = await _udpClient.ReceiveAsync();
+                //データ受信待機、受信したらbufferに受信したUDPデータグラムを格納
+                var buffer = result.Buffer;
                 var remote = result.RemoteEndPoint;
 
-                string response = Encoding.UTF8.GetString(result.Buffer);
+                //受信したデータ(バイト)を文字列に変換
+                string response = Encoding.UTF8.GetString(buffer).Replace("\0", "").Trim();
+
+                //空のデータだった場合は処理しない
+                if (string.IsNullOrEmpty(response))
+                {
+                    continue;
+                }
 
                 this.OnRecieve(response, remote);
             }

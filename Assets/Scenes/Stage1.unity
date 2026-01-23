@@ -587,7 +587,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f13de2602ad404bb6a21f48c14664aea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  limitTime: 10
+  limitTime: 30
   waitStartTime: 3
   timeCount: 0
   onGame: 0
@@ -6204,8 +6204,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adab00dcca7a44c7ca9afebb82344785, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  taggerColor: {r: 1, g: 0, b: 0, a: 1}
-  playerColor: {r: 0, g: 0, b: 1, a: 1}
   timeCountText: {fileID: 1600891241}
   waitTimeText: {fileID: 937675575}
   isTaggerText: {fileID: 1303385570}

@@ -5,6 +5,8 @@ using UnityEngine;
 using System.Net;
 using System.Xml.Serialization;
 using Palmmedia.ReportGenerator.Core.Parser.Analysis;
+using System.Data;
+using TMPro;
 
 public class HostPacketHandler
 {
@@ -25,12 +27,16 @@ public class HostPacketHandler
         switch (packet.command)
         {
             case NetworkCommand.ConnectRequest:
-                // クライアント接続処理
+                //クライアント接続処理
                 HandleConnectRequest(packet.dataJson, sender);
                 break;
             case NetworkCommand.SendAvatarData:
-                // クライアントのアバターデータ受信処理
+                //クライアントのアバターデータ受信処理
                 HandleSendAvatarData(packet.dataJson, sender);
+                break;
+            case NetworkCommand.Touch:
+                //鬼の交代の受信処理
+                HandleTouchData(packet.dataJson, sender);
                 break;
             
         }
@@ -57,7 +63,6 @@ public class HostPacketHandler
         Debug.Log($"接続要求：{_manager.ServerState.MasterPlayers[resId].playerProfile.name}");
 
         //接続可能だった場合
-        
         List<LobbyPlayerData> currentPlayerList = new List<LobbyPlayerData>();
         foreach (var player in _manager.ServerState.MasterPlayers)
         {
@@ -71,7 +76,6 @@ public class HostPacketHandler
 
         //接続応答の送信
         var connectResponseData = new ConnectResponseData {roomId = GameSessionData.Instance.roomId, playerId = resId, firstPlayerList = currentPlayerList};
-        Debug.Log($"[Check JSON ConnectAnounce]{JsonUtility.ToJson(connectResponseData)}");
         _manager.SendPacketToClient(NetworkCommand.ConnectResponse, connectResponseData, sender);
 
         //接続者のデータの送信
@@ -102,6 +106,45 @@ public class HostPacketHandler
 
             Debug.Log($"[Host]準備完了(アバターデータ更新) id:{player.id} avatarIdx:{player.avatarIdx} colorIdx:{player.colorIdx}");
         }
+    }
+
+    private void HandleTouchData(string dataJson, IPEndPoint sender)
+    {
+        //受け取ったデータをタッチレポートデータのクラスに戻す
+        TouchReportData data = JsonUtility.FromJson<TouchReportData>(dataJson);
+
+        if (!_manager.ServerState.MasterPlayers.ContainsKey(data.playerId))//タッチしたプレイヤーがいなければ
+        {
+            Debug.Log("[Host] タッチした鬼のデータは存在しません");
+            return;
+        }
+        //IPチェックは回線変更の場合機能しないので一旦なし
+        // if(_manager.ServerState.MasterPlayers[data.playerId].clientIP != sender)//送信元とタッチしたプレイヤーが一致しなければ
+        // {
+        //     Debug.Log($"[Host] 送信元と鬼が一致しません {_manager.ServerState.MasterPlayers[data.playerId].clientIP}:{sender} ");
+        //     return;
+        // }
+        if(_manager.ServerState.GetPlayer(data.collisionId) == null)//タッチした相手がいなければ
+        {
+            Debug.Log("[Host] collisionPlayerがいません");
+            return;
+        }
+
+        _manager.ServerState.UpdatePlayerIsTag(data.playerId, false);//タッチした鬼のマスターデータのフラグ(isTag)を更新
+        _manager.ServerState.UpdatePlayerIsTag(data.collisionId, true);//タッチされた側のマスターデータのフラグ(isTag)を更新
+
+
+        List<TagStateData> tagStates = new List<TagStateData>();
+        foreach(var player in _manager.ServerState.MasterPlayers)
+        {
+            TagStateData playerData = new TagStateData(player.Key, player.Value.playerProfile.isTag);
+            tagStates.Add(playerData);
+        }
+
+        TagChangeData tagList = new TagChangeData(tagStates);
+
+        _manager.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
+        Debug.Log($"[Host] id:{data.collisionId}の人が鬼に交代したことを通知");
     }
 
 }

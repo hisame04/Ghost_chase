@@ -148,6 +148,51 @@ public class ServerGameState
             }
         }
     }
+
+    /*id指定で鬼かどうかのフラッグを切り替える*/
+    public void UpdatePlayerIsTag(int id,bool isTag)
+    {
+        if(GetPlayer(id) != null){
+            GetPlayer(id).isTag = isTag;
+        }
+    }
+
+    /*鬼が何番かをチェック*/
+    public int CheckTagPlayer()
+    {
+        int i = 0;
+        int tagId = 0;
+        foreach(var player in MasterPlayers)
+        {
+            if (player.Value.playerProfile.isTag)
+            {
+                if(player.Key == player.Value.playerProfile.id)
+                {
+                    tagId = player.Key;
+                    i += 1;
+                }
+                else
+                {
+                    Debug.Log("[Host]マスターデータのIDが一致しません");
+                    return -1;
+                }
+            }
+        }
+        if (i < 2)
+        {
+            return tagId;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    /*鬼の判定の修正*/
+    public void FixTagData()
+    {
+        
+    }
 }
 
 //*サーバのみが持つクライアントの情報*//

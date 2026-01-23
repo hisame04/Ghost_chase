@@ -15,7 +15,8 @@ public enum NetworkCommand
     ReadyAnnounce,//【from Host】部屋に参加しているプレイヤーが準備完了の場合
     GameStart,//【from Host】ゲーム開始(全プレイヤーの初期データを送る)
     // Move,       //【from Client】 位置情報
-    Touch //【from Client】タッチ
+    Touch, //【from Client】タッチ
+    TagChange //【from Host】鬼の交代情報
     //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新
     // ... 今後追加
 }
@@ -131,6 +132,7 @@ public class LobbyPlayerData
 }
 
 /*ホストがロビーでクライアントに送る1人分のプレイヤーデータ*/
+[System.Serializable]
 public class LobbyPlayerListData
 {
     public LobbyPlayerData[] playerList;
@@ -138,6 +140,7 @@ public class LobbyPlayerListData
 
 //*【Touch】*//
 /*タッチした時鬼のクライアントがホストに送るデータ*/
+[System.Serializable]
 public class TouchReportData
 {
     public int playerId;
@@ -147,12 +150,18 @@ public class TouchReportData
 
 //*【TagChange】*//
 /*ホストが鬼交代の時に全員に送るデータ*/
+[System.Serializable]
 public class TagChangeData
 {
-    public TagStateData[] playerTagList;
+    public List<TagStateData> playerTagList;
+    public TagChangeData(List<TagStateData> playerTagList)
+    {
+        this.playerTagList = playerTagList;
+    }
 }
 
 /*ホストが鬼交代の時に送る鬼かどうかの一人分のデータ*/
+[System.Serializable]
 public class TagStateData
 {
     public int id;
@@ -164,8 +173,8 @@ public class TagStateData
     }
 }
 
-[System.Serializable]
 /*ホストがfirebaseにIPアドレスのデータを登録するためのクラス*/
+[System.Serializable]
 public class RoomData
 {
     public string localIp;

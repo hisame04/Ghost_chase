@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using System.Collections.Concurrent;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -49,6 +50,9 @@ public class NetworkManager : MonoBehaviour
     public event Action<string> OnJoinRoomFailed;//部屋接続失敗時
     public event Action OnMemberListUpdate;//部屋のメンバー更新時
     public event Action<bool> OnHostAllReady;//全員が準備完了した時
+    public event Action<bool> OnTagPlayerChanged;//鬼かどうかが変わった時
+
+    private ConcurrentQueue<string> _packetQueue = new ConcurrentQueue<string>();
 
 
     ////*Awake*////
@@ -101,6 +105,12 @@ public class NetworkManager : MonoBehaviour
     ////*Update*////
     void Update()
     {
+        //
+        while (_packetQueue.TryDequeue(out string json))
+        {
+            _clientHandler.Handle(json);
+        }
+
         // テスト用: スペースキーを押したら送信
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -397,7 +407,8 @@ public class NetworkManager : MonoBehaviour
             //OnReceiveで受信したらClientPacketHandlerのHandleを呼び出す
             _client.OnDataReceived += (data) =>
             {
-                _clientHandler.Handle(data);
+                // _clientHandler.Handle(data);
+                _packetQueue.Enqueue(data);
             };
 
         }
@@ -537,6 +548,12 @@ public class NetworkManager : MonoBehaviour
     public void TriggerHostAllReady(bool isAllReady)
     {
         OnHostAllReady?.Invoke(isAllReady);
+    }
+
+    //*鬼交代が起こった時*//
+    public void TriggerTagChange(bool isTag)
+    {
+        OnTagPlayerChanged?.Invoke(isTag);
     }
 
     //*ゲーム開始時*//

@@ -13,6 +13,8 @@ public class StatusController : MonoBehaviour
         this.playerId = id;
         this.playerProfile = GameSessionData.Instance.GetPlayer(playerId);
         this.isTag = playerProfile.isTag;
+        Debug.Log($"[StatusController]myId:{playerId}");
+        Debug.Log($"[StatusController]tag:{isTag}");
     }
 
     // Start is called before the first frame update
@@ -26,12 +28,5 @@ public class StatusController : MonoBehaviour
     {
         this.playerProfile = GameSessionData.Instance.GetPlayer(playerId);
         this.isTag = playerProfile.isTag;
-
-        UpdateTagUI(this.isTag);
-    }
-
-    void UpdateTagUI(bool isTag)
-    {
-        UIController.Instance.SetTaggerUI(isTag);
     }
 }

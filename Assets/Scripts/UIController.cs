@@ -8,8 +8,6 @@ using UnityEngine.SceneManagement;
 public class UIController : MonoBehaviour
 {
     public static UIController Instance { get; private set; }
-    [SerializeField] Color taggerColor = Color.red;
-    [SerializeField] Color playerColor = Color.blue;
     [SerializeField] TextMeshProUGUI timeCountText;
     [SerializeField] TextMeshProUGUI waitTimeText;
     [SerializeField] GameObject isTaggerText;
@@ -21,6 +19,7 @@ public class UIController : MonoBehaviour
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
     
+    //*オブジェクト生成時の処理(全てのAwake前)*//
     void Awake()
     {
         if(Instance == null)
@@ -33,11 +32,26 @@ public class UIController : MonoBehaviour
         }
     }
 
+    //*オブジェクト生成時の処理(大体全てのAwake後)*//
     void Start()
     {
         gameResultUIPanel.SetActive(false);
         waitGameUIPanel.SetActive(true);
         onGameUIPanel.SetActive(false);
+
+        NetworkManager.Instance.OnTagPlayerChanged += SetTaggerUI;//ClientPacketHandler→NetworkManager→UIControllerで鬼用UIの表示・非表示切り替えのメソッドを呼び出す
+
+        PlayerProfile myProfile = GameSessionData.Instance.GetPlayer(GameSessionData.Instance.myIDNum);
+        SetTaggerUI(myProfile.isTag);
+    }
+
+    /*オブジェクトが消滅した時の処理*/
+    void OnDestroy()
+    {
+        if (NetworkManager.Instance != null)
+        {
+            NetworkManager.Instance.OnTagPlayerChanged -= SetTaggerUI;//鬼用UIの表示・非表示切り替えのメソッドを呼び出しを解除
+        }
     }
 
     // Update is called once per frame

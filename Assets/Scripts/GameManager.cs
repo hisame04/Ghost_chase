@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [SerializeField] float limitTime = 60f;
+    [SerializeField] float limitTime = 100f;
     [SerializeField] float waitStartTime = 3f;
     [SerializeField] float timeCount;
     public bool onGame;

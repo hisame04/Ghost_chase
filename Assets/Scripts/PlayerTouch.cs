@@ -10,7 +10,7 @@ public class PlayerTouch : MonoBehaviour
     void Start()
     {
         statusController = this.GetComponent<StatusController>();
-        playerId = statusController.playerId;
+        playerId = GameSessionData.Instance.myIDNum;
     }
 
     // Update is called once per frame
@@ -23,8 +23,20 @@ public class PlayerTouch : MonoBehaviour
     {
         if(collision.gameObject.tag == "Player")
         {
-            StatusController collisionStatusController = collision.gameObject.GetComponent<StatusController>();
             Debug.Log("touchTag");
+            StatusController collisionStatusController = collision.gameObject.GetComponent<StatusController>();
+            if(collisionStatusController == null)
+            {
+                Debug.Log("[PlayerTouch] タッチ相手のStatusControllerが見つかりません");
+                return;
+            }
+            if(statusController == null)
+            {
+                Debug.Log($"[PlayerTouch] 自身のStatusControllerが見つかりません");
+                return;
+            }
+
+            
             if(statusController.isTag){
             // if (Input.GetMouseButtonDown(0)) //鬼が有利そうならオンにする
             // {
