@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class SpawnPlayerController : MonoBehaviour
@@ -40,7 +41,7 @@ public class SpawnPlayerController : MonoBehaviour
         return myAvatar;
     }
 
-    void SetUpMySpawnObject(int playerID,GameObject myAvatar)
+    void SetUpMySpawnObject(int playerId,GameObject myAvatar)
     {
         myAvatar.gameObject.tag = "Player";//タグの設定(当たり判定で必要)
 
@@ -50,6 +51,8 @@ public class SpawnPlayerController : MonoBehaviour
         playerViewController.Init();
         playerViewController.Setup();//色の初期設定
         //StatusControllerにあとでIDをわたす
+        StatusController statusController = myAvatar.GetComponent<StatusController>();
+        statusController.Init(playerId);
     }
 
     /*相手のアバターの設定をするメソッド*/
@@ -63,15 +66,18 @@ public class SpawnPlayerController : MonoBehaviour
         return enemyAvatar;
     }
 
-    void SetUpEnemySpawnObject(int playerID,GameObject enemyAvatar)
+    void SetUpEnemySpawnObject(int playerId,GameObject enemyAvatar)
     {
         enemyAvatar.gameObject.tag = "Player";//タグの設定(当たり判定で必要)
         //移動のスクリプトの設定
         //状態遷移のスクリプトの設定
 
         EnemyViewController enemyViewController = enemyAvatar.GetComponent<EnemyViewController>();
-        enemyViewController.Init(playerID);
+        enemyViewController.Init(playerId);
         enemyViewController.Setup();//色の初期設定
+
+        StatusController statusController = enemyAvatar.GetComponent<StatusController>();
+        statusController.Init(playerId);//IDを渡す
     }
 
     /*生成したオブジェクトをPlayerProfileにセットするメソッド*/

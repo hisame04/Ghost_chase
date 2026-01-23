@@ -15,7 +15,7 @@ public enum NetworkCommand
     ReadyAnnounce,//【from Host】部屋に参加しているプレイヤーが準備完了の場合
     GameStart,//【from Host】ゲーム開始(全プレイヤーの初期データを送る)
     // Move,       //【from Client】 位置情報
-    //Action //【from Client】タッチ
+    Touch //【from Client】タッチ
     //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新
     // ... 今後追加
 }
@@ -28,6 +28,7 @@ public class GamePacket
     public string dataJson;        // 中身（さらに別のクラスをJSONにしたもの）
 }
 
+//*【ConnectRequest】*//
 /*接続時に送るデータの中身*/
 [System.Serializable]
 public class ConnectRequestData
@@ -36,6 +37,7 @@ public class ConnectRequestData
     // 将来ここにアバターIDなどを追加
 }
 
+//*【ConnectResponse】*//
 /*接続成功として送るデータの中身*/
 [System.Serializable]
 public class ConnectResponseData
@@ -45,6 +47,7 @@ public class ConnectResponseData
     public List<LobbyPlayerData> firstPlayerList; //部屋に参加しているプレイヤーのリスト
 }
 
+//*【ConnectRefused】*//
 /*接続失敗として送るデータの中身*/
 [System.Serializable]
 public class ConnectRefusedData
@@ -52,6 +55,7 @@ public class ConnectRefusedData
     public string reason; //接続できない理由
 }
 
+//*【Disconnect】*//
 /*切断時に送るデータの中身*/
 [System.Serializable]
 public class DisconnectData
@@ -59,6 +63,7 @@ public class DisconnectData
     public int playerId;
 }
 
+//*【SendAvatarData】*//
 /*ホストに送るアバターデータの中身*/
 [System.Serializable]
 public class SendAvatarData
@@ -76,6 +81,7 @@ public class SendAvatarData
     }
 }
 
+//*【GameStart】*//
 /*ゲーム開始時にホストが全プレイヤーに配るデータ*/
 [System.Serializable]
 public class GameStartPlayerDataList
@@ -108,6 +114,7 @@ public class GameStartPlayerData
     }
 }
 
+//*【ReadyAnnounce】*//
 /*ホストがロビーでクライアントに送る1人分のプレイヤーデータ*/
 [System.Serializable]
 public class LobbyPlayerData
@@ -129,6 +136,33 @@ public class LobbyPlayerListData
     public LobbyPlayerData[] playerList;
 }
 
+//*【Touch】*//
+/*タッチした時鬼のクライアントがホストに送るデータ*/
+public class TouchReportData
+{
+    public int playerId;
+    public int collisionId;
+    
+}
+
+//*【TagChange】*//
+/*ホストが鬼交代の時に全員に送るデータ*/
+public class TagChangeData
+{
+    public TagStateData[] playerTagList;
+}
+
+/*ホストが鬼交代の時に送る鬼かどうかの一人分のデータ*/
+public class TagStateData
+{
+    public int id;
+    public bool isTag;
+    public TagStateData(int id, bool isTag)
+    {
+        this.id = id;
+        this.isTag = isTag;
+    }
+}
 
 [System.Serializable]
 /*ホストがfirebaseにIPアドレスのデータを登録するためのクラス*/

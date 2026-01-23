@@ -11,7 +11,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] float timeCount;
     public bool onGame;
     public bool onWait;
-    [SerializeField] int playerSelf = 0;
     [SerializeField] int firstTagger = 1;
     [SerializeField] int whoTagger;
     [SerializeField] GameObject[] players;
@@ -66,27 +65,10 @@ public class GameManager : MonoBehaviour
                 }
 
                 timeCount -= Time.deltaTime;
-                uIController.SetPlayerUI(players);
                 uIController.SetTimeCountText(timeCount);
-                PlayerSelfIsTagger();
-
-                CheckTaggerError();
-            }
-            else
-            {
-                uIController.SetGameResultUI(PlayerSelfIsTagger());
             }
         }
 
-    }
-
-    bool PlayerSelfIsTagger()
-    {
-        PlayerStatusController playerStatusController = players[playerSelf].GetComponent<PlayerStatusController>();
-        bool isTagger = playerStatusController.isTagger;
-
-        uIController.SetTaggerUI(isTagger);
-        return isTagger;
     }
 
     void CheckTaggerError()
@@ -94,9 +76,9 @@ public class GameManager : MonoBehaviour
         int count = 0;
         foreach (GameObject player in players)
         {
-            PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-            bool isTagger = playerStatusController.isTagger;
-            if (isTagger)
+            StatusController statusController = player.GetComponent<StatusController>();
+            bool isTag = statusController.isTag;
+            if (isTag)
             {
                 count += 1;
             }
@@ -107,8 +89,8 @@ public class GameManager : MonoBehaviour
             count = 0;
             foreach (GameObject player in players)
             {
-                PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-                bool isTagger = playerStatusController.isTagger;
+                StatusController statusController = player.GetComponent<StatusController>();
+                bool isTagger = statusController.isTag;
                 if (isTagger)
                 {
                     if (count == 0)
@@ -117,7 +99,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        playerStatusController.isTagger = false;
+                        statusController.isTag = false;
                     }
                 }
             }

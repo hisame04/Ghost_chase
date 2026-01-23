@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class UIController : MonoBehaviour
 {
+    public static UIController Instance { get; private set; }
     [SerializeField] Color taggerColor = Color.red;
     [SerializeField] Color playerColor = Color.blue;
     [SerializeField] TextMeshProUGUI timeCountText;
@@ -19,8 +20,19 @@ public class UIController : MonoBehaviour
     [SerializeField] TextMeshProUGUI gameResultText;
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
-    [SerializeField] int outLineShaderNum = 1;
-    // Start is called before the first frame update
+    
+    void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     void Start()
     {
         gameResultUIPanel.SetActive(false);
@@ -34,42 +46,6 @@ public class UIController : MonoBehaviour
 
     }
 
-    public void SetPlayerUI(GameObject[] players)
-    {
-        foreach (GameObject player in players)
-        {
-            PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-            bool isTagger = playerStatusController.isTagger;
-            Color colorToChange = isTagger ? taggerColor : playerColor;
-
-            TextMeshPro tmp = player.GetComponentInChildren<TextMeshPro>();
-
-            GameObject bodyObject = player.transform.Find("body").gameObject;
-            GameObject earsObject = player.transform.Find("ears").gameObject;
-
-            if (bodyObject != null) { ChangeOutlineColor(bodyObject, colorToChange); }
-            if (earsObject != null) { ChangeOutlineColor(earsObject, colorToChange); }
-
-            if (tmp != null) { ChangeTmp(tmp, colorToChange); }
-        }
-    }
-
-    void ChangeOutlineColor(GameObject partObject, Color color)
-    {
-        MeshRenderer meshRenderer = partObject.GetComponent<MeshRenderer>();
-        Material[] mats = meshRenderer.materials;
-        if (mats.Length >= outLineShaderNum + 1)
-        {
-            mats[outLineShaderNum].SetColor("_OutlineColor", color);
-            meshRenderer.materials = mats;
-        }
-
-    }
-
-    void ChangeTmp(TextMeshPro tmp, Color color)
-    {
-        tmp.color = color;
-    }
     //制限時間のUIテキスト変更
     public void SetTimeCountText(float timeCount)
     {
@@ -95,6 +71,7 @@ public class UIController : MonoBehaviour
         onGameUIPanel.SetActive(true);
     }
 
+    //鬼のUIを表示・非表示
     public void SetTaggerUI(bool isTagger)
     {
         if (isTagger)
