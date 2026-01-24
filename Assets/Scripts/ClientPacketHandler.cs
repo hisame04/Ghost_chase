@@ -46,6 +46,9 @@ public class ClientPacketHandler
                 //鬼の交代通知の処理
                 HandleTagChange(packet.dataJson);
                 break;
+            case NetworkCommand.UpdatePos:
+                HandleMoveAnnounceData(packet.dataJson);
+                break;
         }
     }
 
@@ -149,7 +152,7 @@ public class ClientPacketHandler
     public void HandleTagChange(string dataJson)
     {
         TagChangeData data = JsonUtility.FromJson<TagChangeData>(dataJson);
-        Debug.Log($"[client] 受信:TagChange {data.playerTagList}");
+        Debug.Log("[client] 受信:TagChange");
 
         foreach(var player in data.playerTagList)
         {
@@ -173,6 +176,22 @@ public class ClientPacketHandler
                 {
                     Debug.Log("[client] 鬼ではありません");
                 }
+            }
+        }
+    }
+
+    public void HandleMoveAnnounceData(string dataJson)
+    {
+        MoveAnnounceData data =JsonUtility.FromJson<MoveAnnounceData>(dataJson);
+        Debug.Log("[client] 受信:MoveAnnounce");
+
+        foreach (var player in data.moveStateList)
+        {
+            if(player.id!=GameSessionData.Instance.myIDNum)
+            {
+                PlayerProfile prof = GameSessionData.Instance.GetPlayer(player.id);
+                prof.playerObject.GetComponent<RemoteMovement>().OnReceiveMoveData(player.pos,player.rot);
+                Debug.Log($"id:{player.id}の位置情報更新 pos:{player.pos},rot:{player.rot}");
             }
         }
     }

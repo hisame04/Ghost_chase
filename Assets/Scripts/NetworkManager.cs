@@ -577,6 +577,40 @@ public class NetworkManager : MonoBehaviour
         //作成したリストを全クライアントに送信
         GameStartPlayerDataList initialData = new GameStartPlayerDataList(playerList,stage);
         BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
+
+        StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
+    }
+
+    //*位置情報一斉送信のループのためのコルーチン*//
+    public IEnumerator AnnouncePlayerPos()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.1f);
+            if(_udpServer != null && ServerState.MasterPlayers.Count > 0)//【TCP実装時】tcpServerも追加
+            {
+                SendAllPlayerPos();
+            }
+        }
+    }
+
+    //*位置情報更新メソッド*//
+    private void SendAllPlayerPos()
+    {
+        List<MoveStateData> allMoveList = new List<MoveStateData>();//プレイヤー位置情報のリストの作成
+        foreach(var player in ServerState.MasterPlayers)
+        {
+            MoveStateData data = new MoveStateData
+            {
+                id = player.Value.playerProfile.id,
+                pos = player.Value.playerProfile.currentPos,
+                rot = player.Value.playerProfile.currentRot
+            };
+            allMoveList.Add(data);
+        }
+
+        MoveAnnounceData announceData = new MoveAnnounceData{moveStateList = allMoveList};//送信用のデータの作成
+        BroadPacketToAllClient(NetworkCommand.UpdatePos,announceData);//全クライアントへの一斉送信
     }
 
     /*部屋離脱メソッド*/

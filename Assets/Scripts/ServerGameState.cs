@@ -66,6 +66,15 @@ public class ServerGameState
         }
     }
 
+    /*回転の更新メソッド*/
+    public void UpdateRotation(int playerId, Quaternion rot)
+    {
+        if (MasterPlayers.ContainsKey(playerId))
+        {
+            MasterPlayers[playerId].playerProfile.currentRot = rot;
+        }
+    }
+
     /*id指定でプレイヤーの情報(PlayerProfile)を探す*/
     public PlayerProfile GetPlayer(int id)
     {

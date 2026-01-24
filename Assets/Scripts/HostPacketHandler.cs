@@ -38,7 +38,9 @@ public class HostPacketHandler
                 //鬼の交代の受信処理
                 HandleTouchData(packet.dataJson, sender);
                 break;
-            
+            case NetworkCommand.Move:
+                HandleMoveStateData(packet.dataJson, sender);
+                break;
         }
     }
 
@@ -145,6 +147,15 @@ public class HostPacketHandler
 
         _manager.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
         Debug.Log($"[Host] id:{data.collisionId}の人が鬼に交代したことを通知");
+    }
+
+    private void HandleMoveStateData(string dataJson, IPEndPoint sender)
+    {
+        //受け取ったデータをムーブステートデータのクラスに戻す
+        MoveStateData data = JsonUtility.FromJson<MoveStateData>(dataJson);
+
+        _manager.ServerState.UpdatePosition(data.id,data.pos);
+        _manager.ServerState.UpdateRotation(data.id,data.rot);
     }
 
 }

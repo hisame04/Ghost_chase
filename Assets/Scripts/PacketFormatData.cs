@@ -14,11 +14,10 @@ public enum NetworkCommand
     SendAvatarData,//【from Client】プレイヤー基本情報(アバターなど)
     ReadyAnnounce,//【from Host】部屋に参加しているプレイヤーが準備完了の場合
     GameStart,//【from Host】ゲーム開始(全プレイヤーの初期データを送る)
-    // Move,       //【from Client】 位置情報
+    Move,       //【from Client】 位置情報
     Touch, //【from Client】タッチ
-    TagChange //【from Host】鬼の交代情報
-    //WorldStateUpdate //【from Host】プレイヤーの位置と状態更新
-    // ... 今後追加
+    TagChange, //【from Host】鬼の交代情報
+    UpdatePos //【from Host】プレイヤーの位置と状態更新
 }
 
 /*パケットの基本形*/
@@ -131,13 +130,6 @@ public class LobbyPlayerData
     }
 }
 
-/*ホストがロビーでクライアントに送る1人分のプレイヤーデータ*/
-[System.Serializable]
-public class LobbyPlayerListData
-{
-    public LobbyPlayerData[] playerList;
-}
-
 //*【Touch】*//
 /*タッチした時鬼のクライアントがホストに送るデータ*/
 [System.Serializable]
@@ -187,4 +179,18 @@ public class RoomData
         this.globalIp = globalIp;
         this.port = port;
     }
+}
+
+[System.Serializable]
+public class MoveStateData
+{
+    public int id;
+    public Vector3 pos;//位置
+    public Quaternion rot;//回転
+}
+
+[System.Serializable]
+public class MoveAnnounceData
+{
+    public List<MoveStateData> moveStateList;
 }

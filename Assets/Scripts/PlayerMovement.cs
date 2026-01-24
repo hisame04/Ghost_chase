@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,6 +6,13 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed = 5f;
     private Vector2 moveInput;
+    Vector3 _lastSentPos;
+    Quaternion _lastSentRot;
+
+    void Start()
+    {
+        StartCoroutine(SendPosition());
+    }
 
     // InputSystemのPlayerInputから「Move」アクションが呼ばれると実行される
     void OnMove(InputValue value)
@@ -21,6 +29,35 @@ public class PlayerMovement : MonoBehaviour
             // Vector3 movement = new Vector3(moveInput.x, 0, moveInput.y);
             Vector3 movement = transform.right * moveInput.x + transform.forward * moveInput.y;
             transform.position += movement * speed * Time.deltaTime;
+        }
+    }
+
+    IEnumerator SendPosition()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.05f);
+
+            //前回のデータとの差
+            float dist = Vector3.Distance(transform.position, _lastSentPos);
+            float angle = Quaternion.Angle(transform.rotation, _lastSentRot);
+
+
+            if(dist > 0.01f || angle >1.0f)
+            {
+                var posData = new MoveStateData
+                {
+                    id = GameSessionData.Instance.myIDNum,
+                    pos = transform.position,
+                    rot = transform.rotation
+                };
+
+                NetworkManager.Instance.SendPacketToHost(NetworkCommand.Move, posData);
+                Debug.Log($"[Client] sendPosData:{transform.position},rot:{transform.rotation}");
+
+                _lastSentPos = transform.position;
+                _lastSentRot = transform.rotation;
+            }
         }
     }
 }
