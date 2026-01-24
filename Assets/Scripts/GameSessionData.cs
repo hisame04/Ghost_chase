@@ -29,8 +29,14 @@ public class GameSessionData : MonoBehaviour
     public int playerLimitNum = 6;//プレイヤー数の制限
     public int playerNum = 3;//実際のプレイヤー数
 
+    /*制限時間*/    
+    public float gameTimeLimit;
+
     /*全プレイヤーのデータ*/
     public Dictionary<int, PlayerProfile> AllPlayers = new Dictionary<int, PlayerProfile>();
+
+    /*RuleDataのスクリプタブルオブジェクト*/
+    [SerializeField] private RuleData ruleData;
 
     void Awake()
     {
@@ -38,6 +44,7 @@ public class GameSessionData : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // シーン遷移しても消えないようにする
+            ApplyGameRule(ruleData);//ルールのスクリプタブルオブジェクトから値をコピー
         }
         else
         {
@@ -108,6 +115,17 @@ public class GameSessionData : MonoBehaviour
             return AllPlayers[id];
         }
         return null;
+    }
+
+    public void ApplyGameRule(RuleData rule)
+    {
+        if(rule == null) return;
+
+        playerLimitNum = rule.max_players;
+        gameTimeLimit = rule.limitTime;
+        
+        Debug.Log($"ルール適用: {rule.max_players}, 最大人数: {playerLimitNum}");
+        Debug.Log($"ルール適用: {rule.limitTime}, 制限時間: {gameTimeLimit}");
     }
 
 }
