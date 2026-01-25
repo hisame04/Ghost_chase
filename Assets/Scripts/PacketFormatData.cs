@@ -17,7 +17,10 @@ public enum NetworkCommand
     Move,       //【from Client】 位置情報
     Touch, //【from Client】タッチ
     TagChange, //【from Host】鬼の交代情報
-    UpdatePos //【from Host】プレイヤーの位置と状態更新
+    UpdatePos, //【from Host】プレイヤーの位置と状態更新
+    LoadSuccess,//【from Client】ゲーム画面遷移完了
+    StartCountDown, //【from Host】カウントダウン開始
+    TimeRemain,//【from Host】制限時間同期
 }
 
 /*パケットの基本形*/
@@ -181,6 +184,7 @@ public class RoomData
     }
 }
 
+//*【Move】*//
 [System.Serializable]
 public class MoveStateData
 {
@@ -189,8 +193,35 @@ public class MoveStateData
     public Quaternion rot;//回転
 }
 
+//*【UpdatePos】*//
+/*全プレイヤー*/
 [System.Serializable]
 public class MoveAnnounceData
 {
     public List<MoveStateData> moveStateList;
+}
+
+//*【LoadSccess】*//
+/*シーン遷移成功時*/ //通信コストを減らすなら空のデータにしてもok
+[System.Serializable]
+public class LoadSuccessData
+{
+    public int id;
+    public string loadScene;
+}
+
+//*【StartCountDown】*//
+/*カウントダウン開始通知*/ //通信コストを減らすなら空のデータにしてもok
+[System.Serializable]
+public class StartCounDownData
+{
+    public float countTime;
+}
+
+//*【TimeRemain】*//
+/*時間同期*/
+[System.Serializable]
+public class TimeRemainData
+{
+    public float currentTime;
 }

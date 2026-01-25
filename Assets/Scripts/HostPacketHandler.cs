@@ -1,4 +1,6 @@
 ////*ホストの受信を処理するためのスクリプト*////
+/// 送信・データの書き換え以外(UI操作、オブジェクト操作)はイベント経由で別スクリプトで行うこと ////
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -39,7 +41,12 @@ public class HostPacketHandler
                 HandleTouchData(packet.dataJson, sender);
                 break;
             case NetworkCommand.Move:
+                //クライアントの移動受信処理
                 HandleMoveStateData(packet.dataJson, sender);
+                break;
+            case NetworkCommand.LoadSuccess:
+                //クライアントの移動受信処理
+                HandleLoadSuccessData(packet.dataJson, sender);
                 break;
         }
     }
@@ -95,10 +102,8 @@ public class HostPacketHandler
 
         if (player != null)
         {
-            //PlayerProfileの書き換え
-            player.isReady=data.isReady;
-            player.avatarIdx=data.avatarIdx;
-            player.colorIdx=data.colorIdx;
+            _manager.ServerState.SetReady(data.id, data.isReady);
+            _manager.ServerState.SetAvatarData(data.id, data.avatarIdx, data.colorIdx);
 
             //準備完了が何人かのチェック&UIの更新
             bool canStart = _manager.ServerState.CheckReadyNum();
@@ -107,6 +112,27 @@ public class HostPacketHandler
             _manager.BroadPacketToAllClient(NetworkCommand.ReadyAnnounce,new LobbyPlayerData(player.id, player.name, player.isReady));
 
             Debug.Log($"[Host]準備完了(アバターデータ更新) id:{player.id} avatarIdx:{player.avatarIdx} colorIdx:{player.colorIdx}");
+        }
+    }
+
+    private void HandleLoadSuccessData(string dataJson, IPEndPoint Sender)
+    {
+        //受け取ったデータをロードサクセスデータのクラスに戻す
+        LoadSuccessData data = JsonUtility.FromJson<LoadSuccessData>(dataJson);
+
+        MasterPlayerData player = _manager.ServerState.MasterPlayers[data.id];
+        if(player != null)
+        {
+            if(data.loadScene == "GameScene")
+            {
+                _manager.ServerState.SetLoadSuccess(data.id, true);//マスターデータの書き換え
+
+                if (_manager.ServerState.CheckAlllLoadSuccess())//全員読み込み完了なら
+                {
+                    var startCountData = new StartCounDownData{countTime = GameSessionData.Instance.waitStartTime};
+                    _manager.BroadPacketToAllClient(NetworkCommand.StartCountDown,startCountData);
+                }
+            }
         }
     }
 

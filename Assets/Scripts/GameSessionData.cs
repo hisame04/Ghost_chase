@@ -31,6 +31,7 @@ public class GameSessionData : MonoBehaviour
 
     /*制限時間*/    
     public float gameTimeLimit;
+    public float waitStartTime;
 
     /*全プレイヤーのデータ*/
     public Dictionary<int, PlayerProfile> AllPlayers = new Dictionary<int, PlayerProfile>();
@@ -123,9 +124,11 @@ public class GameSessionData : MonoBehaviour
 
         playerLimitNum = rule.max_players;
         gameTimeLimit = rule.limitTime;
+        waitStartTime = rule.waitStartTime;
         
         Debug.Log($"ルール適用: {rule.max_players}, 最大人数: {playerLimitNum}");
         Debug.Log($"ルール適用: {rule.limitTime}, 制限時間: {gameTimeLimit}");
+        Debug.Log($"ルール適用: {rule.waitStartTime}, 制限時間: {waitStartTime}");
     }
 
 }

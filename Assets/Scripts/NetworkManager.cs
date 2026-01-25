@@ -51,6 +51,7 @@ public class NetworkManager : MonoBehaviour
     public event Action OnMemberListUpdate;//部屋のメンバー更新時
     public event Action<bool> OnHostAllReady;//全員が準備完了した時
     public event Action<bool> OnTagPlayerChanged;//鬼かどうかが変わった時
+    public event Action OnStartCountDown;
 
     private ConcurrentQueue<string> _packetQueue = new ConcurrentQueue<string>();
 
@@ -550,6 +551,12 @@ public class NetworkManager : MonoBehaviour
         OnHostAllReady?.Invoke(isAllReady);
     }
 
+    //*カウントダウン開始通知を受け取った時*//
+    public void TriggerCountStart()
+    {
+        OnStartCountDown?.Invoke();
+    }
+
     //*鬼交代が起こった時*//
     public void TriggerTagChange(bool isTag)
     {
@@ -579,6 +586,7 @@ public class NetworkManager : MonoBehaviour
         BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
 
         StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
+        StartCoroutine(AnnounceCurrentTime());//現在時間のクライアントへの一斉送信コルーチンの開始
     }
 
     //*位置情報一斉送信のループのためのコルーチン*//
@@ -594,7 +602,21 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    //*位置情報更新メソッド*//
+    //*時間送信のためのコルーチン*//
+    public IEnumerator AnnounceCurrentTime()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1.0f);
+            if(_udpServer != null && ServerState.MasterPlayers.Count > 0)//【TCP実装時】tcpServerも追加
+            {
+                SendGameTime();
+            }
+        }
+    }
+
+
+    //*位置情報更新の送信メソッド*//
     private void SendAllPlayerPos()
     {
         List<MoveStateData> allMoveList = new List<MoveStateData>();//プレイヤー位置情報のリストの作成
@@ -611,6 +633,14 @@ public class NetworkManager : MonoBehaviour
 
         MoveAnnounceData announceData = new MoveAnnounceData{moveStateList = allMoveList};//送信用のデータの作成
         BroadPacketToAllClient(NetworkCommand.UpdatePos,announceData);//全クライアントへの一斉送信
+    }
+
+    //*時間更新の送信メソッド*//
+    private void SendGameTime()
+    {
+        float currentTime = GameManager.Instance.GetCurrentTime();
+        var data = new TimeRemainData{ currentTime = currentTime};
+        BroadPacketToAllClient(NetworkCommand.TimeRemain, data);
     }
 
     /*部屋離脱メソッド*/

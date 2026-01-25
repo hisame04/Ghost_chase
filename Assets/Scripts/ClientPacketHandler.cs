@@ -42,12 +42,21 @@ public class ClientPacketHandler
                 //ゲーム開始時の処理
                 HandleGameStart(packet.dataJson);
                 break;
+            case NetworkCommand.StartCountDown:
+                //カウントダウン開始時の処理
+                HandleStartCountDownData(packet.dataJson);
+                break;
             case NetworkCommand.TagChange:
                 //鬼の交代通知の処理
                 HandleTagChange(packet.dataJson);
                 break;
             case NetworkCommand.UpdatePos:
+                //位置情報更新通知の処理
                 HandleMoveAnnounceData(packet.dataJson);
+                break;
+            case NetworkCommand.TimeRemain:
+                //ホスト時間の受信処理
+                HandleTimeRemainData(packet.dataJson);
                 break;
         }
     }
@@ -194,5 +203,19 @@ public class ClientPacketHandler
                 Debug.Log($"id:{player.id}の位置情報更新 pos:{player.pos},rot:{player.rot}");
             }
         }
+    }
+
+    public void HandleStartCountDownData(string dataJson)
+    {
+        StartCounDownData data = JsonUtility.FromJson<StartCounDownData>(dataJson);
+
+        _manager.TriggerCountStart();
+    }
+
+    public void HandleTimeRemainData(string dataJson)
+    {
+        TimeRemainData data = JsonUtility.FromJson<TimeRemainData>(dataJson);
+
+        GameManager.Instance.RemainTime(data.currentTime);
     }
 }

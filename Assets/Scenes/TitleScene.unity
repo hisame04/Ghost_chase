@@ -6291,9 +6291,6 @@ MonoBehaviour:
   selectedProtocol: 0
   selectedRole: 0
   roomId: 
-  serverIP: 
-  serverPort: 
-  clientPort: 0
   myIDNum: 0
   myAvatarIndex: 0
   myColorIndex: 0
@@ -6301,8 +6298,9 @@ MonoBehaviour:
   isReady: 0
   playerLimitNum: 2
   playerNum: 3
-  spawnPos: []
-  avatarIdx: 
+  gameTimeLimit: 0
+  waitStartTime: 0
+  ruleData: {fileID: 11400000, guid: ed5c1f252fd374a56ae61695f6f7203b, type: 2}
 --- !u!4 &1590381528
 Transform:
   m_ObjectHideFlags: 0

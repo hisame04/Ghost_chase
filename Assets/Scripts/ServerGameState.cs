@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using System.Linq;
+using System.Data.Common;
 
 //*サーバのみが持つ全てのクライアントの情報*//
 public class ServerGameState
@@ -102,7 +103,7 @@ public class ServerGameState
     {
         foreach (var player in MasterPlayers)
         {
-            if (!player.Value.playerProfile.isReady)
+            if (!player.Value.isReady)
             {
                 return false;//準備完了ではない人がいたらfalse
             }
@@ -114,6 +115,21 @@ public class ServerGameState
         }
         
         return true;
+    }
+
+    //準備完了のデータのセット
+    public void SetReady(int id, bool isReady)
+    {
+        MasterPlayers[id].isReady = isReady;
+        GetPlayer(id).isReady=isReady;
+    }
+
+    //アバターデータのセット
+    public void SetAvatarData(int id, int avatarIdx, int colorIdx)
+    {
+        var player =GetPlayer(id);
+        player.avatarIdx = avatarIdx;
+        player.colorIdx = colorIdx;
     }
 
     /*ゲーム開始時に鬼と初期位置を決める処理*/
@@ -202,6 +218,33 @@ public class ServerGameState
     {
         
     }
+
+    /*ロードシーン完了フラグのセット*/
+    public void SetLoadSuccess(int id , bool load)
+    {
+        if(MasterPlayers.ContainsKey(id)){
+            MasterPlayers[id].isSuccessLoaded = load;
+        }
+    }
+
+    /*全員完了したかのチェク*/
+    public bool CheckAlllLoadSuccess()
+    {
+        foreach (var player in MasterPlayers)
+        {
+            if (!player.Value.isSuccessLoaded)
+            {
+                return false;//準備完了ではない人がいたらfalse
+            }
+        }
+
+        if(currentPlayerNum != GameSessionData.Instance.playerLimitNum)
+        {
+            return false;//人数がそもそも足りていなければfalse
+        }
+        
+        return true;
+    }
 }
 
 //*サーバのみが持つクライアントの情報*//
@@ -210,10 +253,13 @@ public class MasterPlayerData
     public PlayerProfile playerProfile;
     public IPEndPoint clientIP;
     public float lastActiveTime;
-    public bool isReady;
+    public bool isReady;//ロビーでの準備完了フラグ
+    public bool isSuccessLoaded;//ゲームシーン遷移完了フラグ
 
     public MasterPlayerData(PlayerProfile profile, System.Net.IPEndPoint ip)
     {
+        isReady = false;
+        isSuccessLoaded = false;
         playerProfile = profile;
         clientIP = ip;
         // LastActiveTime = Time.time;

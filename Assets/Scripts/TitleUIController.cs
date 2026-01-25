@@ -260,7 +260,7 @@ public class TitleUIController : MonoBehaviour
         i = 0;
     }
 
-    /*準備完了人数チェック*/
+    /*ゲーム開始ボタンの有効化*/
     void UpdateStartButtonState(bool isAllReady)
     {
         if(gameStartButton != null)

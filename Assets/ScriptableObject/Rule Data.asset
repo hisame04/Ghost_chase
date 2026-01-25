@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   max_players: 2
   limitTime: 100
+  waitStartTime: 3

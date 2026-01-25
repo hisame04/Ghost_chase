@@ -6,13 +6,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [SerializeField] float limitTime = 100f;
-    [SerializeField] float waitStartTime = 3f;
+    private float limitTime;
     [SerializeField] float timeCount;
     public bool onGame;
     public bool onWait;
-    [SerializeField] int firstTagger = 1;
-    [SerializeField] int whoTagger;
     [SerializeField] GameObject[] players;
     [SerializeField] UIController uIController;
     // Start is called before the first frame update
@@ -33,10 +30,15 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        whoTagger = firstTagger;
-        timeCount = waitStartTime;
-        onWait = true;
+        limitTime = GameSessionData.Instance.gameTimeLimit;
+
+        timeCount = GameSessionData.Instance.waitStartTime;
+        onWait = false;
         onGame = false;
+
+        NetworkManager.Instance.OnStartCountDown += SetCountWaitTime;
+
+        SendSceneLoaded();
     }
 
     // Update is called once per frame
@@ -50,6 +52,7 @@ public class GameManager : MonoBehaviour
                 onGame = true;
                 timeCount = limitTime;
                 uIController.SetOnGameUI();
+                Debug.Log("[client]　ゲームスタート");
             }
 
             timeCount -= Time.deltaTime;
@@ -69,6 +72,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
+    }
+
+    //カウントダウン開始フラグのセット
+    public void SetCountWaitTime()
+    {
+        onWait = true;
+        Debug.Log("[client] カウントダウンスタート");
     }
 
     void CheckTaggerError()
@@ -103,6 +113,29 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    /*シーン読み込み完了を送るためのメソッド*/
+    void SendSceneLoaded()
+    {
+        var data = new LoadSuccessData{id = GameSessionData.Instance.myIDNum, loadScene = "GameScene"};
+        NetworkManager.Instance.SendPacketToHost(NetworkCommand.LoadSuccess,data);
+        Debug.Log("[Client] シーン遷移完了通知の送信");
+    }
+
+    /*ホストが時間送信時に時間取得のために呼び出すメソッド*/
+    public float GetCurrentTime()
+    {
+        return timeCount;
+    }
+
+    /*ホストから受信した時間と合わせるためのメソッド*/
+    public void RemainTime(float hostTime)
+    {
+        if(Mathf.Abs(timeCount -hostTime) > 0.5f)
+        {
+            timeCount = hostTime;
         }
     }
 }

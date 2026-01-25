@@ -6,5 +6,6 @@ using UnityEngine;
 public class RuleData : ScriptableObject
 {
     public int max_players;
-    public int limitTime;
+    public float limitTime;
+    public float waitStartTime;
 }
