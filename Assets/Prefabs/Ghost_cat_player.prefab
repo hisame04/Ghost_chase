@@ -63,7 +63,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 342ed92a66557453a8c59f431b3515bf, type: 2}
-  - {fileID: 2100000, guid: 7d129761b67ea4ae584042619be987ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -276,7 +275,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 342ed92a66557453a8c59f431b3515bf, type: 2}
-  - {fileID: 2100000, guid: 7d129761b67ea4ae584042619be987ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -435,11 +433,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8312229154283031841}
-  - component: {fileID: 3152073018728386459}
+  - component: {fileID: 2454494236050163805}
   - component: {fileID: 6747947282571225397}
+  - component: {fileID: 2775662391132193769}
+  - component: {fileID: -2226211172077668003}
   - component: {fileID: 5637745366786850021}
   - component: {fileID: 1032667288306378829}
-  - component: {fileID: -2226211172077668003}
   - component: {fileID: 3455432542234188824}
   - component: {fileID: 5876720653175138904}
   - component: {fileID: 7951565963773680917}
@@ -471,7 +470,7 @@ Transform:
   - {fileID: 5643782010743816948}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3152073018728386459
+--- !u!114 &2454494236050163805
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -483,8 +482,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01e76b7548eac46b7b90e8056bd7d6f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
-  isTagger: 0
+  isTag: 0
+  playerId: 0
+  playerProfile:
+    id: 0
+    playerObject: {fileID: 0}
+    firstSpawnPos: {x: 0, y: 0, z: 0}
+    name: 
+    avatarIdx: 0
+    colorIdx: 0
+    isTag: 0
+    isReady: 0
+    isConnectAlive: 0
+    currentPos: {x: 0, y: 0, z: 0}
+    currentRot: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &6747947282571225397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -498,7 +509,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  gameManager: {fileID: 0}
+--- !u!114 &2775662391132193769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418778431940447252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3818877ea4be04a60a70c34dba357a5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-2226211172077668003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418778431940447252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d9d07a38040345d5a0a5cc27452b731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  avatarData: {fileID: 11400000, guid: d21e8bf54c4c3404d9a4293692c177f4, type: 2}
+  myId: 0
 --- !u!54 &5637745366786850021
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -556,28 +592,6 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &-2226211172077668003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3418778431940447252}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d9d07a38040345d5a0a5cc27452b731, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  avatarData: {fileID: 11400000, guid: d21e8bf54c4c3404d9a4293692c177f4, type: 2}
-  myProfile:
-    id: 0
-    playerObject: {fileID: 0}
-    firstSpawnPos: {x: 0, y: 0, z: 0}
-    name: 
-    avatarIdx: 0
-    colorIdx: 0
-    isTag: 0
-    isConnectAlive: 0
 --- !u!136 &3455432542234188824
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -920,7 +934,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64889701ad91144e4876a74c2427f6f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
   mouseSensitivity: 300
   playerBody: {fileID: 0}
 --- !u!124 &9150604119566928069

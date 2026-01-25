@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "99060552670",
+    "firebase_url": "https://ghostchase-mathcing-default-rtdb.firebaseio.com",
+    "project_id": "ghostchase-mathcing",
+    "storage_bucket": "ghostchase-mathcing.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99060552670:android:b8dadf012d958f1b0b434f",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.Ghostchase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBASbfXDZNuWGz72U9Jjqvhyq1RfSqHZMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

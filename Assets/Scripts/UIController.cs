@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public class UIController : MonoBehaviour
 {
-    [SerializeField] Color taggerColor = Color.red;
-    [SerializeField] Color playerColor = Color.blue;
+    public static UIController Instance { get; private set; }
     [SerializeField] TextMeshProUGUI timeCountText;
     [SerializeField] TextMeshProUGUI waitTimeText;
     [SerializeField] GameObject isTaggerText;
@@ -17,15 +17,47 @@ public class UIController : MonoBehaviour
     [SerializeField] GameObject waitGameUIPanel;
     [SerializeField] GameObject onGameUIPanel;
     [SerializeField] TextMeshProUGUI gameResultText;
+    [SerializeField] Button nextGameButton;
+
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
-    [SerializeField] int outLineShaderNum = 1;
-    // Start is called before the first frame update
+    
+    //*オブジェクト生成時の処理(全てのAwake前)*//
+    void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    //*オブジェクト生成時の処理(大体全てのAwake後)*//
     void Start()
     {
         gameResultUIPanel.SetActive(false);
         waitGameUIPanel.SetActive(true);
         onGameUIPanel.SetActive(false);
+
+        nextGameButton.onClick.AddListener(GoToNextGame);//次のゲームに進む(通信切断&シーン遷移)ボタン
+
+        NetworkManager.Instance.OnTagPlayerChanged += SetTaggerUI;//ClientPacketHandler→NetworkManager→UIControllerで鬼用UIの表示・非表示切り替えのメソッドを呼び出す
+
+        PlayerProfile myProfile = GameSessionData.Instance.GetPlayer(GameSessionData.Instance.myIDNum);
+        SetTaggerUI(myProfile.isTag);//鬼のUIの表示・非表示
+        gameResultUIPanel.SetActive(false);//結果画面の非表示
+    }
+
+    /*オブジェクトが消滅した時の処理*/
+    void OnDestroy()
+    {
+        if (NetworkManager.Instance != null)
+        {
+            NetworkManager.Instance.OnTagPlayerChanged -= SetTaggerUI;//鬼用UIの表示・非表示切り替えのメソッドを呼び出しを解除
+        }
     }
 
     // Update is called once per frame
@@ -34,42 +66,6 @@ public class UIController : MonoBehaviour
 
     }
 
-    public void SetPlayerUI(GameObject[] players)
-    {
-        foreach (GameObject player in players)
-        {
-            PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-            bool isTagger = playerStatusController.isTagger;
-            Color colorToChange = isTagger ? taggerColor : playerColor;
-
-            TextMeshPro tmp = player.GetComponentInChildren<TextMeshPro>();
-
-            GameObject bodyObject = player.transform.Find("body").gameObject;
-            GameObject earsObject = player.transform.Find("ears").gameObject;
-
-            if (bodyObject != null) { ChangeOutlineColor(bodyObject, colorToChange); }
-            if (earsObject != null) { ChangeOutlineColor(earsObject, colorToChange); }
-
-            if (tmp != null) { ChangeTmp(tmp, colorToChange); }
-        }
-    }
-
-    void ChangeOutlineColor(GameObject partObject, Color color)
-    {
-        MeshRenderer meshRenderer = partObject.GetComponent<MeshRenderer>();
-        Material[] mats = meshRenderer.materials;
-        if (mats.Length >= outLineShaderNum + 1)
-        {
-            mats[outLineShaderNum].SetColor("_OutlineColor", color);
-            meshRenderer.materials = mats;
-        }
-
-    }
-
-    void ChangeTmp(TextMeshPro tmp, Color color)
-    {
-        tmp.color = color;
-    }
     //制限時間のUIテキスト変更
     public void SetTimeCountText(float timeCount)
     {
@@ -95,6 +91,7 @@ public class UIController : MonoBehaviour
         onGameUIPanel.SetActive(true);
     }
 
+    //鬼のUIを表示・非表示
     public void SetTaggerUI(bool isTagger)
     {
         if (isTagger)
@@ -123,6 +120,7 @@ public class UIController : MonoBehaviour
     public void GoToNextGame()
     {
         Debug.Log("Go To TitleScene");
+        NetworkManager.Instance.DisconnectLocal();
         SceneManager.LoadScene("TitleScene");
     }
 }

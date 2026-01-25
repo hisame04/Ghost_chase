@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MouseLookController : MonoBehaviour
 {
-    public GameManager gameManager;
     public float mouseSensitivity = 100f;//マウス感度
     public Transform playerBody;// プレイヤーの体（左右回転用）
     private float xRotation = 0f;
@@ -17,7 +16,7 @@ public class MouseLookController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gameManager.onGame)
+        if (GameManager.Instance.onGame)
         {
             MouseLook();
         }

@@ -6,8 +6,9 @@ using UnityEngine;
 public class EnemyViewController : MonoBehaviour
 {
     [SerializeField] AvatarData avatarData;
-    public PlayerProfile myProfile;
-    
+    public int playerId;
+    public PlayerProfile playerProfile;
+
     //変更するマテリアルの保存用変数
     Material bodyBaseMaterial;
     Material bodyOutlineMaterial;
@@ -17,8 +18,10 @@ public class EnemyViewController : MonoBehaviour
     //プレイヤー名のTextMesh
     TextMeshPro playerNameText;
 
-    void Awake()
+    public void Init(int id)
     {
+        playerId = id;
+        playerProfile = GameSessionData.Instance.AllPlayers[playerId];
         FindPlayerNameText();
         FindMaterial();//最初に子オブジェクトから変更するマテリアルを取得
     }
@@ -26,16 +29,21 @@ public class EnemyViewController : MonoBehaviour
     /*見た目の初期設定 (SpawnPlayerControllerから呼び出し)*/
     public void Setup()
     {
-        Debug.Log($"EnemyViewController Setup /id:{myProfile.id} color:{myProfile.colorIdx}");
-        AvatarBaseColorSet(myProfile.colorIdx,this.gameObject);//アバターのベース色を初期設定
-        PlayerNameTextSet(myProfile.name);
-        PlayerNameColorSet(myProfile.isTag);
+        Debug.Log($"EnemyViewController Setup /id:{playerId} color:{playerProfile.colorIdx}");
+        AvatarBaseColorSet(playerProfile.colorIdx,this.gameObject);//アバターのベース色を初期設定
+        PlayerNameTextSet(playerProfile.name);
+        PlayerNameColorSet(playerProfile.isTag);
     }
 
     public void Update()
     {
-        AvatarOutlineColorSet(myProfile.isTag);//アウトライン色の更新
-        PlayerNameColorSet(myProfile.isTag);//名前色の更新
+        //通信切断後のNullPointExceptionを防ぐ
+        if (GameSessionData.Instance == null) return;
+        if (playerProfile == null) return;
+        if (playerNameText == null) return;
+
+        AvatarOutlineColorSet(playerProfile.isTag);//アウトライン色の更新
+        PlayerNameColorSet(playerProfile.isTag);//名前色の更新
     }
 
     /*変更したいマテリアルの取得*/
