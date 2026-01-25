@@ -26,7 +26,9 @@ public class StatusController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.playerProfile = GameSessionData.Instance.GetPlayer(playerId);
-        this.isTag = playerProfile.isTag;
+        if(GameManager.Instance.onGame){
+            this.playerProfile = GameSessionData.Instance.GetPlayer(playerId);
+            this.isTag = playerProfile.isTag;
+        }
     }
 }

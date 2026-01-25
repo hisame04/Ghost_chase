@@ -37,6 +37,11 @@ public class EnemyViewController : MonoBehaviour
 
     public void Update()
     {
+        //通信切断後のNullPointExceptionを防ぐ
+        if (GameSessionData.Instance == null) return;
+        if (playerProfile == null) return;
+        if (playerNameText == null) return;
+
         AvatarOutlineColorSet(playerProfile.isTag);//アウトライン色の更新
         PlayerNameColorSet(playerProfile.isTag);//名前色の更新
     }
