@@ -63,7 +63,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 342ed92a66557453a8c59f431b3515bf, type: 2}
-  - {fileID: 2100000, guid: 7d129761b67ea4ae584042619be987ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -276,7 +275,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 342ed92a66557453a8c59f431b3515bf, type: 2}
-  - {fileID: 2100000, guid: 7d129761b67ea4ae584042619be987ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -490,13 +488,14 @@ MonoBehaviour:
     id: 0
     playerObject: {fileID: 0}
     firstSpawnPos: {x: 0, y: 0, z: 0}
-    currentPos: {x: 0, y: 0, z: 0}
     name: 
     avatarIdx: 0
     colorIdx: 0
     isTag: 0
     isReady: 0
     isConnectAlive: 0
+    currentPos: {x: 0, y: 0, z: 0}
+    currentRot: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &6747947282571225397
 MonoBehaviour:
   m_ObjectHideFlags: 0
