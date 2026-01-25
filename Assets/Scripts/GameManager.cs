@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public bool onWait;
     [SerializeField] GameObject[] players;
     [SerializeField] UIController uIController;
-    // Start is called before the first frame update
+    private PlayerProfile myProfile;
 
     void Awake()
     {
@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
         timeCount = GameSessionData.Instance.waitStartTime;
         onWait = false;
         onGame = false;
+        myProfile = GameSessionData.Instance.GetPlayer(GameSessionData.Instance.myIDNum);
 
         NetworkManager.Instance.OnStartCountDown += SetCountWaitTime;
 
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
                 if (timeCount < 0)
                 {
                     onGame = false;
+                    uIController.SetGameResultUI(myProfile.isTag);
                 }
 
                 timeCount -= Time.deltaTime;
