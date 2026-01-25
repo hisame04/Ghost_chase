@@ -91,11 +91,13 @@ public class TitleUIController : MonoBehaviour
     /*プレイヤー名決定*/
     void OnDecidePlayerName()
     {
-        SetButtonsInteractable(false);
-        GameSessionData.Instance.SetPlayerName(playerNameInput.text);//GameSessionDataに入力した名前を登録
-        myPlayerNameText.text = GameSessionData.Instance.myName;//アバター選択画面の自分の名前を表示
-        ProtcolSelectPanelSet();
-        SetButtonsInteractable(true);
+        if(playerNameInput.text.Trim().Length > 0){
+            SetButtonsInteractable(false);
+            GameSessionData.Instance.SetPlayerName(playerNameInput.text);//GameSessionDataに入力した名前を登録
+            myPlayerNameText.text = GameSessionData.Instance.myName;//アバター選択画面の自分の名前を表示
+            ProtcolSelectPanelSet();
+            SetButtonsInteractable(true);
+        }
     }
 
     /*プロトコル選択-UDP選択*/
