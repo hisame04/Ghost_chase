@@ -587,13 +587,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f13de2602ad404bb6a21f48c14664aea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  limitTime: 30
-  waitStartTime: 3
   timeCount: 0
   onGame: 0
   onWait: 0
-  firstTagger: 1
-  whoTagger: 0
   players:
   - {fileID: 0}
   - {fileID: 0}
@@ -6212,6 +6208,7 @@ MonoBehaviour:
   waitGameUIPanel: {fileID: 1400215735}
   onGameUIPanel: {fileID: 362724088}
   gameResultText: {fileID: 1699726015}
+  nextGameButton: {fileID: 1628482419}
 --- !u!4 &1800645538
 Transform:
   m_ObjectHideFlags: 0

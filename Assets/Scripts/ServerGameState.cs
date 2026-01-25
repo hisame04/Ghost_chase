@@ -245,6 +245,15 @@ public class ServerGameState
         
         return true;
     }
+
+    public void ResetAllStates()
+    {
+        MasterPlayers.Clear();
+        allReady = false;
+        currentPlayerNum = 0;
+        _nextPlayerId = 1;
+        Debug.Log("[ServerGameState] ステータスをリセットしました");
+    }
 }
 
 //*サーバのみが持つクライアントの情報*//

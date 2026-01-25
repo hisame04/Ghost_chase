@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Rule Data
   m_EditorClassIdentifier: 
   max_players: 2
-  limitTime: 100
+  limitTime: 20
   waitStartTime: 3

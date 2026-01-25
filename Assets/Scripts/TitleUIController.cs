@@ -64,9 +64,9 @@ public class TitleUIController : MonoBehaviour
         NetworkManager.Instance.OnJoinRoomSuccess += OnJoinRoomSuccess;//部屋参加成功時
         NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
         NetworkManager.Instance.OnMemberListUpdate += OnMemberListUpdate;//参加者の更新時
-        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host){
-            NetworkManager.Instance.OnHostAllReady += UpdateStartButtonState;//参加者の更新時
-        }
+
+        NetworkManager.Instance.OnHostAllReady += UpdateStartButtonState;//参加者の更新時
+        
 
         for (int i = 0; i < GameSessionData.Instance.playerLimitNum; i++)
         {

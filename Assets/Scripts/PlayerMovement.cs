@@ -14,6 +14,11 @@ public class PlayerMovement : MonoBehaviour
         StartCoroutine(SendPosition());
     }
 
+    void OnDestroy()
+    {
+
+    }
+
     // InputSystemのPlayerInputから「Move」アクションが呼ばれると実行される
     void OnMove(InputValue value)
     {

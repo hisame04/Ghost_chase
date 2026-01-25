@@ -131,4 +131,22 @@ public class GameSessionData : MonoBehaviour
         Debug.Log($"ルール適用: {rule.waitStartTime}, 制限時間: {waitStartTime}");
     }
 
+    /*初期化用メソッド*/
+    public void ResetAllState()
+    {
+        roomId = "";
+        AllPlayers.Clear();
+        myIDNum = 0;
+        isReady = false;
+        myAvatarIndex = 0;
+        myColorIndex=0;
+
+        if(ruleData != null)
+        {
+            ApplyGameRule(ruleData);
+        }
+
+        Debug.Log("[GameSessionData] ステータスをリセットしました");
+    }
+
 }

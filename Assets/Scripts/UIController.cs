@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 public class UIController : MonoBehaviour
@@ -16,6 +17,8 @@ public class UIController : MonoBehaviour
     [SerializeField] GameObject waitGameUIPanel;
     [SerializeField] GameObject onGameUIPanel;
     [SerializeField] TextMeshProUGUI gameResultText;
+    [SerializeField] Button nextGameButton;
+
     // [SerializeField] int bodyMeshNum = 0;
     // [SerializeField] int earsMeshNum = 1;
     
@@ -39,10 +42,13 @@ public class UIController : MonoBehaviour
         waitGameUIPanel.SetActive(true);
         onGameUIPanel.SetActive(false);
 
+        nextGameButton.onClick.AddListener(GoToNextGame);//次のゲームに進む(通信切断&シーン遷移)ボタン
+
         NetworkManager.Instance.OnTagPlayerChanged += SetTaggerUI;//ClientPacketHandler→NetworkManager→UIControllerで鬼用UIの表示・非表示切り替えのメソッドを呼び出す
 
         PlayerProfile myProfile = GameSessionData.Instance.GetPlayer(GameSessionData.Instance.myIDNum);
-        SetTaggerUI(myProfile.isTag);
+        SetTaggerUI(myProfile.isTag);//鬼のUIの表示・非表示
+        gameResultUIPanel.SetActive(false);//結果画面の非表示
     }
 
     /*オブジェクトが消滅した時の処理*/
@@ -114,6 +120,7 @@ public class UIController : MonoBehaviour
     public void GoToNextGame()
     {
         Debug.Log("Go To TitleScene");
+        NetworkManager.Instance.DisconnectLocal();
         SceneManager.LoadScene("TitleScene");
     }
 }

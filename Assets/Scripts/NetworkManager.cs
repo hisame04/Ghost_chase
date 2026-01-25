@@ -55,6 +55,9 @@ public class NetworkManager : MonoBehaviour
 
     private ConcurrentQueue<string> _packetQueue = new ConcurrentQueue<string>();
 
+    private Coroutine _posCoroutine;
+    private Coroutine _timeCoroutine;
+
 
     ////*Awake*////
     void Awake()
@@ -585,8 +588,10 @@ public class NetworkManager : MonoBehaviour
         GameStartPlayerDataList initialData = new GameStartPlayerDataList(playerList,stage);
         BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
 
-        StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
-        StartCoroutine(AnnounceCurrentTime());//現在時間のクライアントへの一斉送信コルーチンの開始
+        //ゲーム中のホストの定期送信コルーチンの開始 
+        StopGameCoroutine();
+        _posCoroutine = StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
+        _timeCoroutine = StartCoroutine(AnnounceCurrentTime());//現在時間のクライアントへの一斉送信コルーチンの開始
     }
 
     //*位置情報一斉送信のループのためのコルーチン*//
@@ -672,21 +677,48 @@ public class NetworkManager : MonoBehaviour
         _cts?.Dispose();
         _cts = null;
 
-        // UDPクライアントを閉じる
+        //コルーチンを止める
+        StopGameCoroutine();
+
+        //クライアントを閉じる
         if (_client != null)
         {
             _client.Close();
             _client = null;
         }
 
-        // サーバー機能も動いていれば閉じる（ホストの場合）
+        //サーバー機能も動いていれば閉じる（ホストの場合）
         if (_udpServer != null)
         {
             _udpServer.Stop();
             _udpServer = null;
+            ServerState.ResetAllStates();
+        }
+
+        //セッションデータの削除
+        if(GameSessionData.Instance != null)
+        {
+            GameSessionData.Instance.ResetAllState();
         }
 
         Debug.Log("通信を切断しました");
+    }
+
+    /*コルーチン停止処理メソッド*/
+    public void StopGameCoroutine()
+    {
+        if(_posCoroutine != null)
+        {
+            StopCoroutine(_posCoroutine);
+            _posCoroutine = null;
+        }
+
+        if(_timeCoroutine != null)
+        {
+            StopCoroutine(_timeCoroutine);
+            _timeCoroutine = null;
+        }
+        Debug.Log("[Server] 送信コルーチンの停止");
     }
 
     /*キャンセルトークンが存在するかの確認メソッド*/
