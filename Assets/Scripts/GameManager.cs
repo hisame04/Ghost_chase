@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
     /*ホストから受信した時間と合わせるためのメソッド*/
     public void RemainTime(float hostTime)
     {
-        if(Mathf.Abs(timeCount -hostTime) > 0.5f)
+        if(hostTime > 0 && Mathf.Abs(timeCount -hostTime) > 0.5f)
         {
             timeCount = hostTime;
         }

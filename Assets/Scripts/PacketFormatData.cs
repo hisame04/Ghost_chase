@@ -21,6 +21,8 @@ public enum NetworkCommand
     LoadSuccess,//【from Client】ゲーム画面遷移完了
     StartCountDown, //【from Host】カウントダウン開始
     TimeRemain,//【from Host】制限時間同期
+    Ping,//【from Client】生存報告
+    PlayerDisconnect,//【from Host】通信切断プレイヤーの通知
 }
 
 /*パケットの基本形*/
@@ -148,9 +150,11 @@ public class TouchReportData
 [System.Serializable]
 public class TagChangeData
 {
+    public string reason;
     public List<TagStateData> playerTagList;
-    public TagChangeData(List<TagStateData> playerTagList)
+    public TagChangeData(string reason,List<TagStateData> playerTagList)
     {
+        this.reason = reason;
         this.playerTagList = playerTagList;
     }
 }
@@ -224,4 +228,18 @@ public class StartCounDownData
 public class TimeRemainData
 {
     public float currentTime;
+}
+
+//*【Ping】*//
+[System.Serializable]
+public class PingData
+{
+    public int id;
+}
+
+//*【PlayerDisconnect】*//
+[System.Serializable]
+public class PlayerDisconnectData
+{
+    public int playerId;
 }

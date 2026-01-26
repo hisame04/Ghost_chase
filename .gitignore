@@ -73,3 +73,15 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# --- Firebase / Google Services Secrets ---
+/[Aa]ssets/google-services.json
+/[Aa]ssets/google-services-desktop.json
+/[Aa]ssets/[Ss]treamingAssets/google-services.json
+/[Aa]ssets/[Ss]treamingAssets/google-services-desktop.json
+
+# Meta files for secrets (optional but recommended)
+/[Aa]ssets/google-services.json.meta
+/[Aa]ssets/google-services-desktop.json.meta
+/[Aa]ssets/[Ss]treamingAssets/google-services.json.meta
+/[Aa]ssets/[Ss]treamingAssets/google-services-desktop.json.meta
