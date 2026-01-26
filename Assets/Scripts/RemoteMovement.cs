@@ -5,7 +5,7 @@ using UnityEngine;
 public class RemoteMovement : MonoBehaviour
 {
     private Vector3 targetPos;
-    private Quaternion targetRot;
+    private Quaternion targetRot = Quaternion.identity;
     private float _smoothSpeed = 10f;
 
     // Start is called before the first frame update

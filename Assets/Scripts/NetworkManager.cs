@@ -646,7 +646,7 @@ public class NetworkManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(1.0f);
-            if(_udpServer != null && ServerState.MasterPlayers.Count > 0)//【TCP実装時】tcpServerも追加
+            if(_udpServer != null && ServerState.MasterPlayers.Count > 0 && GameManager.Instance.onGame)//【TCP実装時】tcpServerも追加
             {
                 SendGameTime();
             }
@@ -673,6 +673,7 @@ public class NetworkManager : MonoBehaviour
             //シーンロード中だった場合
             if (!ServerState.allReady && ServerState.CheckAlllLoadSuccess()) 
             {
+                ServerState.allReady = true;
                 var startCountData = new StartCounDownData{countTime = GameSessionData.Instance.waitStartTime};
                 BroadPacketToAllClient(NetworkCommand.StartCountDown, startCountData);
             }
@@ -692,7 +693,7 @@ public class NetworkManager : MonoBehaviour
             {
                 NetworkManager.Instance.DisconnectLocal();
                 SceneManager.LoadScene("TitleScene");
-                
+
                 //マウスカーソルを表示
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;

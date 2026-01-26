@@ -138,6 +138,7 @@ public class HostPacketHandler
 
                 if (_manager.ServerState.CheckAlllLoadSuccess())//全員読み込み完了なら
                 {
+                    _manager.ServerState.allReady = true;
                     var startCountData = new StartCounDownData{countTime = GameSessionData.Instance.waitStartTime};
                     _manager.BroadPacketToAllClient(NetworkCommand.StartCountDown,startCountData);
                 }
