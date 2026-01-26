@@ -48,6 +48,10 @@ public class HostPacketHandler
                 //クライアントの移動受信処理
                 HandleLoadSuccessData(packet.dataJson, sender);
                 break;
+            case NetworkCommand.Ping:
+                //クライアントの生存報告受信処理
+                HandlePingData(packet.dataJson, sender);
+                break;
         }
     }
 
@@ -169,9 +173,13 @@ public class HostPacketHandler
             tagStates.Add(playerData);
         }
 
-        TagChangeData tagList = new TagChangeData(tagStates);
+        TagChangeData tagList = new TagChangeData("touch",tagStates);
+
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(data.playerId);
 
         _manager.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
+
         Debug.Log($"[Host] id:{data.collisionId}の人が鬼に交代したことを通知");
     }
 
@@ -182,6 +190,18 @@ public class HostPacketHandler
 
         _manager.ServerState.UpdatePosition(data.id,data.pos);
         _manager.ServerState.UpdateRotation(data.id,data.rot);
+
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(data.id);
+    }
+
+    private void HandlePingData(string dataJson,IPEndPoint sender)
+    {
+        //受け取ったデータをPingデータのクラスに戻す
+        PingData data = JsonUtility.FromJson<PingData>(dataJson);
+        
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(data.id);
     }
 
 }

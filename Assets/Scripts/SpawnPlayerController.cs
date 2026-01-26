@@ -85,6 +85,10 @@ public class SpawnPlayerController : MonoBehaviour
     {
         var playerProfile = GameSessionData.Instance.GetPlayer(idNum);
         playerProfile.playerObject = avatarObj;
+        if(playerProfile.playerObject != avatarData)
+        {
+            Debug.Log($"{idNum}番のオブジェクトをセット");
+        }
     }
 
 }

@@ -1,8 +1,8 @@
 ////*全クライアントが持つ1ゲームのデータ*////
 using System.Collections;
 using System.Collections.Generic;
-// using System.Numerics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameSessionData : MonoBehaviour
 {
@@ -118,6 +118,7 @@ public class GameSessionData : MonoBehaviour
         return null;
     }
 
+    /*RuleDataからルールの読み込み*/
     public void ApplyGameRule(RuleData rule)
     {
         if(rule == null) return;
@@ -129,6 +130,38 @@ public class GameSessionData : MonoBehaviour
         Debug.Log($"ルール適用: {rule.max_players}, 最大人数: {playerLimitNum}");
         Debug.Log($"ルール適用: {rule.limitTime}, 制限時間: {gameTimeLimit}");
         Debug.Log($"ルール適用: {rule.waitStartTime}, 制限時間: {waitStartTime}");
+    }
+
+    /*プレイヤーデータの削除*/
+    public void RemovePlayer(int id)
+    {
+        var player = GetPlayer(id);
+        if(player != null)
+        {
+            if(player.playerObject != null)
+            {
+                //ゲーム画面のオブジェクトの削除
+                GameObject.Destroy(player.playerObject);
+                Debug.Log($"[GameSessionData]{id}番のオブジェクトを削除しました");
+            }
+            if(player.playerObject == null)
+            {
+                Debug.Log($"[GameSessionData]{id}番のオブジェクトがnullです");
+            }
+
+            AllPlayers.Remove(id);
+            Debug.Log($"[GameSessionData] {id}番のデータを削除しました");
+        }
+        else
+        {
+            Debug.Log($"[GameSessionData] {id}番のデータがありません");
+        }
+
+        if(AllPlayers.Count < 2)//プレイヤーが1人になったらタイトルに戻す
+        {
+            NetworkManager.Instance.DisconnectLocal();
+            SceneManager.LoadScene("TitleScene");
+        }
     }
 
     /*初期化用メソッド*/

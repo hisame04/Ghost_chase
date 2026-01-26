@@ -58,6 +58,10 @@ public class ClientPacketHandler
                 //ホスト時間の受信処理
                 HandleTimeRemainData(packet.dataJson);
                 break;
+            case NetworkCommand.PlayerDisconnect:
+                //タイムアウトのプレイヤー情報受信処理
+                HandlePlayerDisconnect(packet.dataJson);
+                break;
         }
     }
 
@@ -217,5 +221,13 @@ public class ClientPacketHandler
         TimeRemainData data = JsonUtility.FromJson<TimeRemainData>(dataJson);
 
         GameManager.Instance.RemainTime(data.currentTime);
+    }
+
+    private void HandlePlayerDisconnect(string dataJson)
+    {
+        PlayerDisconnectData data = JsonUtility.FromJson<PlayerDisconnectData>(dataJson);
+
+        GameSessionData.Instance.RemovePlayer(data.playerId);
+        _manager.TriggerRemovePlayer(data.playerId);
     }
 }

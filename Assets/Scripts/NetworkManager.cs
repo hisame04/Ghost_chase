@@ -51,12 +51,15 @@ public class NetworkManager : MonoBehaviour
     public event Action OnMemberListUpdate;//部屋のメンバー更新時
     public event Action<bool> OnHostAllReady;//全員が準備完了した時
     public event Action<bool> OnTagPlayerChanged;//鬼かどうかが変わった時
-    public event Action OnStartCountDown;
+    public event Action OnStartCountDown;//ゲーム画面のカウントダウン開始時
+    public event Action<int> OnRemovePlayer;//プレイヤー切断時
 
     private ConcurrentQueue<string> _packetQueue = new ConcurrentQueue<string>();
 
-    private Coroutine _posCoroutine;
-    private Coroutine _timeCoroutine;
+    private Coroutine _posCoroutine;//[ホスト]場所更新一斉送信用
+    private Coroutine _timeCoroutine;//[ホスト]時間更新一斉送信用
+    private Coroutine _checkTimeoutCoroutine;//[ホスト]タイムアウトチェック用
+    private Coroutine _keepAliveCoroutine;//[クライアント]生存報告用
 
 
     ////*Awake*////
@@ -109,7 +112,12 @@ public class NetworkManager : MonoBehaviour
     ////*Update*////
     void Update()
     {
-        //
+        if(_client == null && _udpServer == null)//【TCP追加時】tcpServer==nullを追加
+        {
+            while (_packetQueue.TryDequeue(out _)) { }
+            return;
+        }
+        
         while (_packetQueue.TryDequeue(out string json))
         {
             _clientHandler.Handle(json);
@@ -199,6 +207,7 @@ public class NetworkManager : MonoBehaviour
         }
 
         Debug.Log("【ホスト】セットアップ完了");
+        _checkTimeoutCoroutine = StartCoroutine(CheckTimeout());
         return roomId;
     }
 
@@ -533,6 +542,7 @@ public class NetworkManager : MonoBehaviour
     public void TriggerJoinRoomSuccess()
     {
         OnJoinRoomSuccess?.Invoke();
+        _keepAliveCoroutine = StartCoroutine(KeepAlive());//生存報告コルーチンの開始
     }
 
     //*部屋接続失敗時*//
@@ -566,6 +576,12 @@ public class NetworkManager : MonoBehaviour
         OnTagPlayerChanged?.Invoke(isTag);
     }
 
+    //*プレイヤー切断が起こった時*//
+    public void TriggerRemovePlayer(int id)
+    {
+        OnRemovePlayer?.Invoke(id);
+    }
+
     //*ゲーム開始時*//
     public void OnGameStart()
     {
@@ -589,10 +605,10 @@ public class NetworkManager : MonoBehaviour
         BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
 
         //ゲーム中のホストの定期送信コルーチンの開始 
-        StopGameCoroutine();
         _posCoroutine = StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
         _timeCoroutine = StartCoroutine(AnnounceCurrentTime());//現在時間のクライアントへの一斉送信コルーチンの開始
     }
+
 
     //*位置情報一斉送信のループのためのコルーチン*//
     public IEnumerator AnnouncePlayerPos()
@@ -620,6 +636,46 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    //*タイムアウト監視のためのコルーチン*//
+    public IEnumerator CheckTimeout()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1.0f);
+
+            List<int> timeoutPlayers = ServerState.GetTimeoutPlayers(5.0f);
+
+            foreach(int id in timeoutPlayers)
+            {
+                ServerState.RemovePlayer(id);
+
+                var data = new PlayerDisconnectData{playerId = id};
+                BroadPacketToAllClient(NetworkCommand.PlayerDisconnect, data);
+            }
+
+            //シーンロード中だった場合
+            if (!ServerState.allReady && ServerState.CheckAlllLoadSuccess()) 
+            {
+                var startCountData = new StartCounDownData{countTime = GameSessionData.Instance.waitStartTime};
+                BroadPacketToAllClient(NetworkCommand.StartCountDown, startCountData);
+            }
+        }
+    }
+
+    /*クライアントの生存報告のためのコルーチン*/
+    public IEnumerator KeepAlive()
+    {
+        while (true)
+        {
+            if(_client != null && GameSessionData.Instance.myIDNum != 0)
+            {
+                var data = new PingData {id = GameSessionData.Instance.myIDNum};
+                SendPacketToHost(NetworkCommand.Ping, data);
+            }
+
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
 
     //*位置情報更新の送信メソッド*//
     private void SendAllPlayerPos()
@@ -701,6 +757,8 @@ public class NetworkManager : MonoBehaviour
             GameSessionData.Instance.ResetAllState();
         }
 
+        while (_packetQueue.TryDequeue(out _)) { }
+
         Debug.Log("通信を切断しました");
     }
 
@@ -709,15 +767,32 @@ public class NetworkManager : MonoBehaviour
     {
         if(_posCoroutine != null)
         {
+            //位置情報の一斉送信コルーチンの停止
             StopCoroutine(_posCoroutine);
             _posCoroutine = null;
         }
 
         if(_timeCoroutine != null)
         {
+            //時間の一斉送信コルーチンの停止
             StopCoroutine(_timeCoroutine);
             _timeCoroutine = null;
         }
+
+        if(_checkTimeoutCoroutine != null)
+        {
+            //タイムアウトチェックのコルーチンの停止
+            StopCoroutine(_checkTimeoutCoroutine);
+            _checkTimeoutCoroutine = null;
+        }
+
+        if(_keepAliveCoroutine != null)
+        {
+            //生存報告のコルーチンの停止
+            StopCoroutine(_keepAliveCoroutine);
+            _keepAliveCoroutine = null;
+        }
+
         Debug.Log("[Server] 送信コルーチンの停止");
     }
 
