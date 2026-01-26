@@ -280,6 +280,9 @@ public class ServerGameState
                 NetworkManager.Instance.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
             }
             
+            bool canStart = CheckReadyNum();//人数が足りているかをチェック
+            NetworkManager.Instance.TriggerHostAllReady(canStart);//ゲーム開始ボタンの有効無効を切り替える
+
             Debug.Log($"[Server] ID:{id} をリストから削除しました。残り:{currentPlayerNum}人");
         }
     }

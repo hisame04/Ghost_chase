@@ -65,7 +65,7 @@ public class TitleUIController : MonoBehaviour
         NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
         NetworkManager.Instance.OnMemberListUpdate += OnMemberListUpdate;//参加者の更新時
 
-        NetworkManager.Instance.OnHostAllReady += UpdateStartButtonState;//参加者の更新時
+        NetworkManager.Instance.OnClientAllReady += UpdateStartButtonState;//参加者の更新時
         NetworkManager.Instance.OnRemovePlayer += RemovePlayer;//プレイヤーの切断時
         
 
@@ -85,7 +85,7 @@ public class TitleUIController : MonoBehaviour
             NetworkManager.Instance.OnJoinRoomSuccess -= OnJoinRoomSuccess;
             NetworkManager.Instance.OnJoinRoomFailed -= OnJoinRoomFailed;
             NetworkManager.Instance.OnMemberListUpdate -= OnMemberListUpdate;
-            NetworkManager.Instance.OnHostAllReady -= UpdateStartButtonState;
+            NetworkManager.Instance.OnClientAllReady -= UpdateStartButtonState;
             NetworkManager.Instance.OnRemovePlayer -= RemovePlayer;
         }
     }
@@ -271,7 +271,7 @@ public class TitleUIController : MonoBehaviour
         i = 0;
     }
 
-    /*ゲーム開始ボタンの有効化*/
+    /*ゲーム開始ボタンの有効化・無効化*/
     void UpdateStartButtonState(bool isAllReady)
     {
         if(gameStartButton != null)

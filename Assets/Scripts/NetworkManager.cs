@@ -49,7 +49,7 @@ public class NetworkManager : MonoBehaviour
     public event Action OnJoinRoomSuccess;//部屋接続成功時
     public event Action<string> OnJoinRoomFailed;//部屋接続失敗時
     public event Action OnMemberListUpdate;//部屋のメンバー更新時
-    public event Action<bool> OnHostAllReady;//全員が準備完了した時
+    public event Action<bool> OnClientAllReady;//全員が準備完了した時
     public event Action<bool> OnTagPlayerChanged;//鬼かどうかが変わった時
     public event Action OnStartCountDown;//ゲーム画面のカウントダウン開始時
     public event Action<int> OnRemovePlayer;//プレイヤー切断時
@@ -571,7 +571,7 @@ public class NetworkManager : MonoBehaviour
     //*全員準備完了になった時*//
     public void TriggerHostAllReady(bool isAllReady)
     {
-        OnHostAllReady?.Invoke(isAllReady);
+        OnClientAllReady?.Invoke(isAllReady);
     }
 
     //*カウントダウン開始通知を受け取った時*//
