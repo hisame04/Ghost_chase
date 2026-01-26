@@ -5,6 +5,7 @@ using System.Net;
 using UnityEngine;
 using System.Linq;
 using System.Data.Common;
+using Unity.VisualScripting;
 
 //*サーバのみが持つ全てのクライアントの情報*//
 public class ServerGameState
@@ -135,46 +136,58 @@ public class ServerGameState
     /*ゲーム開始時に鬼と初期位置を決める処理*/
     public void DecideInitialGameData()
     {
+        DecideSpawnPos();
+        DecideTagPlayer();
+    }
+
+    //初期スポーン位置のランダム決定
+    public void DecideSpawnPos()
+    {
+        List<Vector3> shuffledSpawns = _spawnPos.OrderBy(x => System.Guid.NewGuid()).ToList();
+        int i=0;
+        foreach(var player in MasterPlayers)
+        {
+            if(i<shuffledSpawns.Count)
+            {
+                player.Value.playerProfile.firstSpawnPos = shuffledSpawns[i];
+            }
+            else
+            {
+                player.Value.playerProfile.firstSpawnPos = Vector3.zero;
+            }
+            i++;
+        }
+    }
+
+    //鬼のランダム決定
+    public void DecideTagPlayer()
+    {
         List<int> playerIds = MasterPlayers.Keys.ToList();
         int playerCount = playerIds.Count;
 
         if (playerCount == 0) return;
 
-        //_spwnPosをランダムに並び替えした座標リストを作成
-        List<Vector3> shuffledSpawns = _spawnPos.OrderBy(x => System.Guid.NewGuid()).ToList();
-
         //鬼を決定
         int tagIdx = Random.Range(0,playerCount);
         int tagPlayerId = playerIds[tagIdx];
 
-        for(int i = 0;i<playerCount; i++)
+        int i = 0;
+        foreach(var player in MasterPlayers)
         {
-            int id = playerIds[i];
-            var masterData = MasterPlayers[id];
 
-            if (i < shuffledSpawns.Count)//インデックスが初期位置の数に収まった場合
+            if(player.Key == tagPlayerId)
             {
-                masterData.playerProfile.firstSpawnPos = shuffledSpawns[i];
+                player.Value.playerProfile.isTag = true;
             }
             else
             {
-                Debug.Log($"[ServerState]初期位置がたりません 初期位置{shuffledSpawns.Count}、プレイヤー数{playerCount}");
-                masterData.playerProfile.firstSpawnPos = Vector3.zero;
+                player.Value.playerProfile.isTag = false;
             }
-
-            if(id == tagPlayerId)
-            {
-                masterData.playerProfile.isTag = true;
-                Debug.Log($"[ServerState]最初の鬼はid{id}の人");
-            }
-            else
-            {
-                masterData.playerProfile.isTag = false;
-            }
+            i++;
         }
     }
 
-    /*id指定で鬼かどうかのフラッグを切り替える*/
+/*id指定で鬼かどうかのフラッグを切り替える*/
     public void UpdatePlayerIsTag(int id,bool isTag)
     {
         if(GetPlayer(id) != null){
@@ -210,6 +223,67 @@ public class ServerGameState
         else
         {
             return -1;
+        }
+    }
+
+    /*通信受信時にアクティブだった時刻を更新*/
+    public void UpdateLastActiveTime(int id)
+    {
+        if (MasterPlayers.ContainsKey(id))
+        {
+            MasterPlayers[id].lastActiveTime = Time.time;
+        }
+    }
+
+    /*一定時間通信のないプレイヤーの取得*/
+    public List<int> GetTimeoutPlayers(float thresholdTime)
+    {
+        List<int> timeoutIds = new List<int>();
+        float currentTime = Time.time;
+
+        foreach (var player in MasterPlayers)
+        {
+            if(player.Key == GameSessionData.Instance.myIDNum){continue;}//ホスト自身のクライアントはチェックしない
+
+            if (currentTime - player.Value.lastActiveTime > thresholdTime)
+            {
+                timeoutIds.Add(player.Key);
+                Debug.Log($"{player.Key}番のプレイヤーが最終通信から{thresholdTime}秒経過");
+                Debug.Log($"{player.Key}番のプレイヤーが切断しました");
+            }
+        }
+        return timeoutIds;
+    }
+
+    /*通信のないプレイヤーの削除処理*/
+    public void RemovePlayer(int id)
+    {
+        if (MasterPlayers.ContainsKey(id))
+        {
+            bool wasTag = GetPlayer(id).isTag;
+            bool isOnGame = GameManager.Instance != null && GameManager.Instance.onGame;
+
+            MasterPlayers.Remove(id);
+            currentPlayerNum = MasterPlayers.Count; // 人数を更新
+            if (isOnGame && wasTag)
+            {
+                DecideTagPlayer();//鬼のランダム決め直し
+
+                List<TagStateData> tagStates = new List<TagStateData>();
+                foreach(var player in MasterPlayers)
+                {
+                    TagStateData playerData = new TagStateData(player.Key, player.Value.playerProfile.isTag);
+                    tagStates.Add(playerData);
+                }
+
+                TagChangeData tagList = new TagChangeData("disconnect",tagStates);
+                NetworkManager.Instance.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
+            }
+            
+            bool canStart = CheckReadyNum();//人数が足りているかをチェック
+            NetworkManager.Instance.TriggerHostAllReady(canStart);//ゲーム開始ボタンの有効無効を切り替える
+
+            Debug.Log($"[Server] ID:{id} をリストから削除しました。残り:{currentPlayerNum}人");
         }
     }
 
@@ -269,8 +343,8 @@ public class MasterPlayerData
     {
         isReady = false;
         isSuccessLoaded = false;
+        lastActiveTime = Time.time;
         playerProfile = profile;
         clientIP = ip;
-        // LastActiveTime = Time.time;
     }
 }

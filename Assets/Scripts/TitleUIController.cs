@@ -65,7 +65,8 @@ public class TitleUIController : MonoBehaviour
         NetworkManager.Instance.OnJoinRoomFailed += OnJoinRoomFailed;//部屋参加失敗時
         NetworkManager.Instance.OnMemberListUpdate += OnMemberListUpdate;//参加者の更新時
 
-        NetworkManager.Instance.OnHostAllReady += UpdateStartButtonState;//参加者の更新時
+        NetworkManager.Instance.OnClientAllReady += UpdateStartButtonState;//参加者の更新時
+        NetworkManager.Instance.OnRemovePlayer += RemovePlayer;//プレイヤーの切断時
         
 
         for (int i = 0; i < GameSessionData.Instance.playerLimitNum; i++)
@@ -84,7 +85,8 @@ public class TitleUIController : MonoBehaviour
             NetworkManager.Instance.OnJoinRoomSuccess -= OnJoinRoomSuccess;
             NetworkManager.Instance.OnJoinRoomFailed -= OnJoinRoomFailed;
             NetworkManager.Instance.OnMemberListUpdate -= OnMemberListUpdate;
-            NetworkManager.Instance.OnHostAllReady -= UpdateStartButtonState;
+            NetworkManager.Instance.OnClientAllReady -= UpdateStartButtonState;
+            NetworkManager.Instance.OnRemovePlayer -= RemovePlayer;
         }
     }
 
@@ -248,27 +250,43 @@ public class TitleUIController : MonoBehaviour
             if (player.Value.isReady)
             {
                 memberReadyImage[i].SetActive(true);
-                Debug.Log($"{i}番目のユーザ準備完了");
+                Debug.Log($"id:{player.Value.id}番目のユーザ準備完了");
             }
             else
             {
                 memberReadyImage[i].SetActive(false);
-                Debug.Log($"{i}番目のユーザ準備未完了");
+                Debug.Log($"{player.Value.id}番目のユーザ準備未完了");
             }
             i += 1;
         }
+
+        for(int j = i; j < memberNameText.Length; j++)
+        {
+            memberNameText[j].gameObject.SetActive(false);
+            memberReadyImage[j].gameObject.SetActive(false);
+        }
+
         //部屋の参加人数の更新
         roomPlayerNumText.text = $"{GameSessionData.Instance.AllPlayers.Count.ToString()}/{GameSessionData.Instance.playerLimitNum}";
         i = 0;
     }
 
-    /*ゲーム開始ボタンの有効化*/
+    /*ゲーム開始ボタンの有効化・無効化*/
     void UpdateStartButtonState(bool isAllReady)
     {
         if(gameStartButton != null)
         {
             GameStartButtonInteractable(isAllReady);
             Debug.Log($"[UI]全員準備完了{isAllReady}");
+        }
+    }
+
+    /*プレイヤー切断時のUIの削除*/
+    void RemovePlayer(int id)
+    {
+        if(GameManager.Instance == null || !GameManager.Instance.onGame)
+        {
+            OnMemberListUpdate();
         }
     }
 

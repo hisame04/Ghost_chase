@@ -58,6 +58,14 @@ public class ClientPacketHandler
                 //ホスト時間の受信処理
                 HandleTimeRemainData(packet.dataJson);
                 break;
+            case NetworkCommand.PlayerDisconnect:
+                //タイムアウトのプレイヤー情報受信処理
+                HandlePlayerDisconnect(packet.dataJson);
+                break;
+            case NetworkCommand.Ping:
+                //ホストの生存報告受信処理
+                HandleHostPingData(packet.dataJson);
+                break;
         }
     }
 
@@ -83,6 +91,7 @@ public class ClientPacketHandler
         Debug.Log($"[client]　playerNum{GameSessionData.Instance.AllPlayers.Count}");
 
         _manager.TriggerMemberListUpdate();
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     /*接続拒否を受け取った時の処理*/
@@ -106,6 +115,8 @@ public class ClientPacketHandler
 
             _manager.TriggerMemberListUpdate();//UIのメンバーリストを更新するためのイベントを起動
         }
+
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     private void HandleReadyAnnounce(string dataJson)
@@ -123,6 +134,8 @@ public class ClientPacketHandler
 
             _manager.TriggerMemberListUpdate();//UIのメンバーリストを更新するためのイベントを起動
         }
+
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     private void HandleGameStart(string dataJson)
@@ -156,6 +169,7 @@ public class ClientPacketHandler
 
         //ホストの選択したゲームステージシーンに遷移
         SceneManager.LoadScene(data.stage);
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     public void HandleTagChange(string dataJson)
@@ -187,6 +201,8 @@ public class ClientPacketHandler
                 }
             }
         }
+
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     public void HandleMoveAnnounceData(string dataJson)
@@ -203,6 +219,8 @@ public class ClientPacketHandler
                 Debug.Log($"id:{player.id}の位置情報更新 pos:{player.pos},rot:{player.rot}");
             }
         }
+
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     public void HandleStartCountDownData(string dataJson)
@@ -210,6 +228,7 @@ public class ClientPacketHandler
         StartCounDownData data = JsonUtility.FromJson<StartCounDownData>(dataJson);
 
         _manager.TriggerCountStart();
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 
     public void HandleTimeRemainData(string dataJson)
@@ -217,5 +236,21 @@ public class ClientPacketHandler
         TimeRemainData data = JsonUtility.FromJson<TimeRemainData>(dataJson);
 
         GameManager.Instance.RemainTime(data.currentTime);
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
+    }
+
+    private void HandlePlayerDisconnect(string dataJson)
+    {
+        PlayerDisconnectData data = JsonUtility.FromJson<PlayerDisconnectData>(dataJson);
+
+        GameSessionData.Instance.RemovePlayer(data.playerId);
+        _manager.TriggerRemovePlayer(data.playerId);
+    }
+
+    private void HandleHostPingData(string dataJson)
+    {   
+        PingData data = JsonUtility.FromJson<PingData>(dataJson);
+
+        _manager.UpdateLastHostActiveTime();//ホストの最終通信時刻の更新
     }
 }
