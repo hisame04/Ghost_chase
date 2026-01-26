@@ -19,7 +19,7 @@ public class PlayerTouch : MonoBehaviour
         
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnCollisionStay(Collision collision)
     {
         if(collision.gameObject.tag == "Player")
         {
@@ -38,12 +38,12 @@ public class PlayerTouch : MonoBehaviour
 
             
             if(statusController.isTag){
-            // if (Input.GetMouseButtonDown(0)) //鬼が有利そうならオンにする
-            // {
+            if (Input.GetMouseButtonDown(0))//実際に遊んで操作感悪かったら消す
+            {
                 TouchReportData touchData = new TouchReportData{playerId = this.playerId,collisionId = collisionStatusController.playerId};
                 NetworkManager.Instance.SendPacketToHost(NetworkCommand.Touch,touchData);
                 Debug.Log($"[touch]id:{collisionStatusController.playerId}にタッチ ホストに送信");
-            // }
+            }
             }
         }
     }
