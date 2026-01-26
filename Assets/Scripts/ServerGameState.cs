@@ -243,9 +243,12 @@ public class ServerGameState
 
         foreach (var player in MasterPlayers)
         {
+            if(player.Key == GameSessionData.Instance.myIDNum){continue;}//ホスト自身のクライアントはチェックしない
+
             if (currentTime - player.Value.lastActiveTime > thresholdTime)
             {
                 timeoutIds.Add(player.Key);
+                Debug.Log($"{player.Key}番のプレイヤーが最終通信から{thresholdTime}秒経過");
                 Debug.Log($"{player.Key}番のプレイヤーが切断しました");
             }
         }
@@ -257,7 +260,12 @@ public class ServerGameState
     {
         if (MasterPlayers.ContainsKey(id))
         {
-            if ((GameManager.Instance != null && GameManager.Instance.onGame) || GetPlayer(id).isTag)
+            bool wasTag = GetPlayer(id).isTag;
+            bool isOnGame = GameManager.Instance != null && GameManager.Instance.onGame;
+
+            MasterPlayers.Remove(id);
+            currentPlayerNum = MasterPlayers.Count; // 人数を更新
+            if (isOnGame && wasTag)
             {
                 DecideTagPlayer();//鬼のランダム決め直し
 
@@ -271,9 +279,7 @@ public class ServerGameState
                 TagChangeData tagList = new TagChangeData("disconnect",tagStates);
                 NetworkManager.Instance.BroadPacketToAllClient(NetworkCommand.TagChange,tagList);
             }
-            MasterPlayers.Remove(id);
-            currentPlayerNum = MasterPlayers.Count; // 人数を更新
-            _nextPlayerId -= 1;//次回接続するプレイヤーのIDを1減らす
+            
             Debug.Log($"[Server] ID:{id} をリストから削除しました。残り:{currentPlayerNum}人");
         }
     }

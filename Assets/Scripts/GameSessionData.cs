@@ -159,8 +159,15 @@ public class GameSessionData : MonoBehaviour
 
         if(AllPlayers.Count < 2)//プレイヤーが1人になったらタイトルに戻す
         {
-            NetworkManager.Instance.DisconnectLocal();
-            SceneManager.LoadScene("TitleScene");
+            if(GameManager.Instance != null && GameManager.Instance.onGame)//ゲーム中の場合のみ
+            {
+                NetworkManager.Instance.DisconnectLocal();
+                SceneManager.LoadScene("TitleScene");
+                //マウスカーソルを表示
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+
+            }
         }
     }
 

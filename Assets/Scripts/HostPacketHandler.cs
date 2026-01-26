@@ -94,6 +94,9 @@ public class HostPacketHandler
         //接続者のデータの送信
         var connectPlayerData = new LobbyPlayerData(resId,data.playerName,false);
         _manager.BroadPacketToAllClient(NetworkCommand.ConnectAnnounce,connectPlayerData);
+
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(resId);
         
     }
 
@@ -117,6 +120,8 @@ public class HostPacketHandler
 
             Debug.Log($"[Host]準備完了(アバターデータ更新) id:{player.id} avatarIdx:{player.avatarIdx} colorIdx:{player.colorIdx}");
         }
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(data.id);
     }
 
     private void HandleLoadSuccessData(string dataJson, IPEndPoint Sender)
@@ -138,6 +143,8 @@ public class HostPacketHandler
                 }
             }
         }
+        //アクティブタイムの更新
+        _manager.ServerState.UpdateLastActiveTime(data.id);
     }
 
     private void HandleTouchData(string dataJson, IPEndPoint sender)

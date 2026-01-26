@@ -58,10 +58,13 @@ public class NetworkManager : MonoBehaviour
 
     private Coroutine _posCoroutine;//[ホスト]場所更新一斉送信用
     private Coroutine _timeCoroutine;//[ホスト]時間更新一斉送信用
-    private Coroutine _checkClientTimeoutCoroutine;//[ホスト]タイムアウトチェック用
+    private Coroutine _checkClientTimeoutCoroutine;//[ホスト]クライアントのタイムアウトチェック用
     private Coroutine _keepAliveClientCoroutine;//[クライアント]生存報告用
-    private Coroutine _checkHostTimeoutCoroutine;//[クライアント]タイムアウトチェック用
+    private Coroutine _checkHostTimeoutCoroutine;//[クライアント]ホストのタイムアウトチェック用
     private Coroutine _keepAliveHostCoroutine;//[ホスト]生存報告用
+
+    private float lastHostActiveTime;//ホストの最終通信時刻
+    private float thresholdTime = 5.0f;//タイムアウト制限時間
 
     ////*Awake*////
     void Awake()
@@ -208,7 +211,8 @@ public class NetworkManager : MonoBehaviour
         }
 
         Debug.Log("【ホスト】セットアップ完了");
-        _checkClientTimeoutCoroutine = StartCoroutine(CheckTimeoutClient());
+        _checkClientTimeoutCoroutine = StartCoroutine(CheckTimeoutClient());//クライアントの生存確認コルーチンの開始
+        _keepAliveHostCoroutine = StartCoroutine(KeepAliveHost());//ホストの生存報告コルーチンの開始
         return roomId;
     }
 
@@ -543,7 +547,12 @@ public class NetworkManager : MonoBehaviour
     public void TriggerJoinRoomSuccess()
     {
         OnJoinRoomSuccess?.Invoke();
+        UpdateLastHostActiveTime();
         _keepAliveClientCoroutine = StartCoroutine(KeepAliveClient());//生存報告コルーチンの開始
+
+        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Client){
+            _checkHostTimeoutCoroutine = StartCoroutine(CheckTimeoutHost());//ホストの生存確認の開始
+        }
     }
 
     //*部屋接続失敗時*//
@@ -605,6 +614,13 @@ public class NetworkManager : MonoBehaviour
         GameStartPlayerDataList initialData = new GameStartPlayerDataList(playerList,stage);
         BroadPacketToAllClient(NetworkCommand.GameStart,initialData);
 
+        //ホストの生存報告コルーチンの停止（定期送信コルーチンを開始するため）
+        if (_keepAliveHostCoroutine!=null)
+        {
+            StopCoroutine(_keepAliveHostCoroutine);
+            _keepAliveHostCoroutine = null;
+        }
+
         //ゲーム中のホストの定期送信コルーチンの開始 
         _posCoroutine = StartCoroutine(AnnouncePlayerPos());//位置情報のクライアントへの一斉送信コルーチンの開始
         _timeCoroutine = StartCoroutine(AnnounceCurrentTime());//現在時間のクライアントへの一斉送信コルーチンの開始
@@ -637,14 +653,14 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    //*タイムアウト監視のためのコルーチン*//
+    //*クライアントのタイムアウト監視のためのコルーチン*//
     public IEnumerator CheckTimeoutClient()
     {
         while (true)
         {
             yield return new WaitForSeconds(1.0f);
 
-            List<int> timeoutPlayers = ServerState.GetTimeoutPlayers(5.0f);
+            List<int> timeoutPlayers = ServerState.GetTimeoutPlayers(thresholdTime);
 
             foreach(int id in timeoutPlayers)
             {
@@ -663,12 +679,34 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    //*ホストのタイムアウト監視のためのコルーチン*//
+    public IEnumerator CheckTimeoutHost()
+    {
+        if(GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host){yield break;}
+
+        while (true)
+        {
+            yield return new WaitForSeconds(1.0f);
+
+            if(Time.time-lastHostActiveTime > thresholdTime)
+            {
+                NetworkManager.Instance.DisconnectLocal();
+                SceneManager.LoadScene("TitleScene");
+                
+                //マウスカーソルを表示
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+                Debug.Log("[client] ホストとの通信が切断しました");
+            }
+        }
+    }
+
     /*クライアントの生存報告のためのコルーチン*/
     public IEnumerator KeepAliveClient()
     {
         while (true)
         {
-            if(_client != null && GameSessionData.Instance.myIDNum != 0)
+            if(_client != null && GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Client)
             {
                 var data = new PingData {id = GameSessionData.Instance.myIDNum};
                 SendPacketToHost(NetworkCommand.Ping, data);
@@ -676,6 +714,27 @@ public class NetworkManager : MonoBehaviour
 
             yield return new WaitForSeconds(1.0f);
         }
+    }
+
+    /*ホストの生存報告のためのコルーチン*/
+    public IEnumerator KeepAliveHost()
+    {
+        while (true)
+        {
+            if(_udpServer != null && GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
+            {
+                var data = new PingData{id = GameSessionData.Instance.myIDNum};
+                BroadPacketToAllClient(NetworkCommand.Ping, data);
+            }
+
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
+
+    /*ホストの最終通信時刻の更新*/
+    public void UpdateLastHostActiveTime()
+    {
+        lastHostActiveTime = Time.time;
     }
 
     //*位置情報更新の送信メソッド*//
@@ -782,16 +841,30 @@ public class NetworkManager : MonoBehaviour
 
         if(_checkClientTimeoutCoroutine != null)
         {
-            //タイムアウトチェックのコルーチンの停止
+            //クライアントのタイムアウトチェックのコルーチンの停止
             StopCoroutine(_checkClientTimeoutCoroutine);
             _checkClientTimeoutCoroutine = null;
         }
 
+        if(_checkHostTimeoutCoroutine != null)
+        {
+            //ホストのタイムアウトチェックのコルーチンの停止
+            StopCoroutine(_checkHostTimeoutCoroutine);
+            _checkHostTimeoutCoroutine = null;
+        }
+
         if(_keepAliveClientCoroutine != null)
         {
-            //生存報告のコルーチンの停止
+            //クライアントの生存報告のコルーチンの停止
             StopCoroutine(_keepAliveClientCoroutine);
             _keepAliveClientCoroutine = null;
+        }
+
+        if(_keepAliveHostCoroutine != null)
+        {
+            //ホストの生存報告のコルーチンの停止
+            StopCoroutine(_keepAliveHostCoroutine);
+            _keepAliveHostCoroutine = null;
         }
 
         Debug.Log("[Server] 送信コルーチンの停止");

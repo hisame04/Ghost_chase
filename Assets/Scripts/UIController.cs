@@ -72,6 +72,7 @@ public class UIController : MonoBehaviour
         string timeText = timeCount >=0 ? timeCount.ToString(("F0")) : "0";
         timeCountText.text =timeText;
     }
+
     //開始待ち時間のUIテキスト変更
     public void SetWaitTimeText(float timeCount)
     {
@@ -82,6 +83,7 @@ public class UIController : MonoBehaviour
         string timeText = timeCount >= 0.5 ? timeCount.ToString(("F0")) : "Start!";
         waitTimeText.text =timeText;
     }
+
     //ゲーム開始時のUI切り替え
     public void SetOnGameUI()
     {
@@ -122,5 +124,9 @@ public class UIController : MonoBehaviour
         Debug.Log("Go To TitleScene");
         NetworkManager.Instance.DisconnectLocal();
         SceneManager.LoadScene("TitleScene");
+        
+        //マウスカーソルを表示
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 }
