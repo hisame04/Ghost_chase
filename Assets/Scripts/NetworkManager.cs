@@ -58,9 +58,10 @@ public class NetworkManager : MonoBehaviour
 
     private Coroutine _posCoroutine;//[ホスト]場所更新一斉送信用
     private Coroutine _timeCoroutine;//[ホスト]時間更新一斉送信用
-    private Coroutine _checkTimeoutCoroutine;//[ホスト]タイムアウトチェック用
-    private Coroutine _keepAliveCoroutine;//[クライアント]生存報告用
-
+    private Coroutine _checkClientTimeoutCoroutine;//[ホスト]タイムアウトチェック用
+    private Coroutine _keepAliveClientCoroutine;//[クライアント]生存報告用
+    private Coroutine _checkHostTimeoutCoroutine;//[クライアント]タイムアウトチェック用
+    private Coroutine _keepAliveHostCoroutine;//[ホスト]生存報告用
 
     ////*Awake*////
     void Awake()
@@ -207,7 +208,7 @@ public class NetworkManager : MonoBehaviour
         }
 
         Debug.Log("【ホスト】セットアップ完了");
-        _checkTimeoutCoroutine = StartCoroutine(CheckTimeout());
+        _checkClientTimeoutCoroutine = StartCoroutine(CheckTimeoutClient());
         return roomId;
     }
 
@@ -542,7 +543,7 @@ public class NetworkManager : MonoBehaviour
     public void TriggerJoinRoomSuccess()
     {
         OnJoinRoomSuccess?.Invoke();
-        _keepAliveCoroutine = StartCoroutine(KeepAlive());//生存報告コルーチンの開始
+        _keepAliveClientCoroutine = StartCoroutine(KeepAliveClient());//生存報告コルーチンの開始
     }
 
     //*部屋接続失敗時*//
@@ -637,7 +638,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     //*タイムアウト監視のためのコルーチン*//
-    public IEnumerator CheckTimeout()
+    public IEnumerator CheckTimeoutClient()
     {
         while (true)
         {
@@ -663,7 +664,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*クライアントの生存報告のためのコルーチン*/
-    public IEnumerator KeepAlive()
+    public IEnumerator KeepAliveClient()
     {
         while (true)
         {
@@ -779,18 +780,18 @@ public class NetworkManager : MonoBehaviour
             _timeCoroutine = null;
         }
 
-        if(_checkTimeoutCoroutine != null)
+        if(_checkClientTimeoutCoroutine != null)
         {
             //タイムアウトチェックのコルーチンの停止
-            StopCoroutine(_checkTimeoutCoroutine);
-            _checkTimeoutCoroutine = null;
+            StopCoroutine(_checkClientTimeoutCoroutine);
+            _checkClientTimeoutCoroutine = null;
         }
 
-        if(_keepAliveCoroutine != null)
+        if(_keepAliveClientCoroutine != null)
         {
             //生存報告のコルーチンの停止
-            StopCoroutine(_keepAliveCoroutine);
-            _keepAliveCoroutine = null;
+            StopCoroutine(_keepAliveClientCoroutine);
+            _keepAliveClientCoroutine = null;
         }
 
         Debug.Log("[Server] 送信コルーチンの停止");
