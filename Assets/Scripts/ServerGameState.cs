@@ -313,7 +313,8 @@ public class ServerGameState
             }
         }
 
-        if(currentPlayerNum != GameSessionData.Instance.playerLimitNum)
+        // if(currentPlayerNum != GameSessionData.Instance.playerLimitNum) //人数が最大人数ではなくても開始できるように変更
+        if(currentPlayerNum < 2)
         {
             return false;//人数がそもそも足りていなければfalse
         }
