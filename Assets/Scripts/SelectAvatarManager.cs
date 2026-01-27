@@ -27,6 +27,10 @@ public class SelectAvatarManager : MonoBehaviour
         emissionIntensities = avatarData.emissionIntensity;
         currentAvatarIndex=0;
         currentColorIndex=0;
+    }
+
+    public void SetFirstAvatar()
+    {
         ChangeAvatar(currentAvatarIndex);
     }
 

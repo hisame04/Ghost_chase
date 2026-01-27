@@ -5492,6 +5492,7 @@ MonoBehaviour:
   - {fileID: 1610356829}
   - {fileID: 1922057464}
   - {fileID: 436625478}
+  selectAvatarManager: {fileID: 799617577}
 --- !u!1 &1467176750
 GameObject:
   m_ObjectHideFlags: 0

@@ -41,6 +41,9 @@ public class TitleUIController : MonoBehaviour
     public TMP_Text[] memberNameText;//部屋にいるプレイヤーの名前を表示するテキスト
     public GameObject[] memberReadyImage;//部屋にいるプレイヤーが準備完了の場合表示する画像
 
+    public SelectAvatarManager selectAvatarManager;
+
+
 
     /*Start*/
     void Start()
@@ -357,6 +360,8 @@ public class TitleUIController : MonoBehaviour
         rolePanel.SetActive(false);
         roomConnectPanel_client.SetActive(false);
         selectAvatarPanel.SetActive(true);
+
+        selectAvatarManager.SetFirstAvatar();//画面上にアバターを表示
 
         //ゲーム開始ボタンの有効・無効
         //ホストならゲーム開始ボタンを表示
