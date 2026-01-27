@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6653214e27e8a42de85f0a8b716046fe, type: 3}
   m_Name: Rule Data
   m_EditorClassIdentifier: 
-  max_players: 2
+  max_players: 6
   limitTime: 20
   waitStartTime: 3
