@@ -364,7 +364,7 @@ public class NetworkManager : MonoBehaviour
         serverPort = 8000;
 
         //サーバの起動
-        bool serverStarted = await SetServer((int)GameSessionData.Instance.selectedProtocol);
+        bool serverStarted = SetServer((int)GameSessionData.Instance.selectedProtocol);
 
         if (!serverStarted)
         {
@@ -397,7 +397,7 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*サーバの生成・開始*/
-    private async Task<bool> SetServer(int protcol)
+    private bool SetServer(int protcol)
     {
         GameSessionData.ProtocolType type = (GameSessionData.ProtocolType)protcol;
         bool isSuccess = false;
@@ -412,7 +412,7 @@ public class NetworkManager : MonoBehaviour
                 _hostHandler.Handle(data, remote);
             };
 
-            isSuccess = await _server.StartServer(serverPort);
+            isSuccess = _server.StartServer(serverPort);
             Debug.Log("Create UDPServer");
         }
         else if (type == GameSessionData.ProtocolType.TCP)
@@ -423,7 +423,7 @@ public class NetworkManager : MonoBehaviour
                 _hostHandler.Handle(data,remote);
             };
 
-            isSuccess = await _server.StartServer(serverPort);
+            isSuccess = _server.StartServer(serverPort);
             Debug.Log("Create TCPServer");
         }
 

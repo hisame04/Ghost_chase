@@ -19,7 +19,7 @@ public class UdpGameServer : IGameServer
     public bool isRunning { get; private set; }
 
     /*サーバの立ち上げ*/
-    public async Task<bool> StartServer(int port)
+    public bool StartServer(int port)
     {
         try
         {

@@ -22,7 +22,7 @@ public class TcpGameServer : IGameServer
     private Dictionary<IPEndPoint, TcpClient> _connectedClients = new Dictionary<IPEndPoint, TcpClient>();
 
     /*サーバの立ち上げ*/
-    public async Task<bool> StartServer(int port)
+    public bool StartServer(int port)
     {
         try
         {

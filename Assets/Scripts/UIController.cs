@@ -107,6 +107,8 @@ public class UIController : MonoBehaviour
 
     public void SetGameResultUI(bool isTagger)
     {
+        SetTaggerUI(false);//鬼のUIを消す
+
         string gameResult = isTagger ? "Lose..." : "Win!";
         gameResultText.text = gameResult;
 
@@ -114,6 +116,8 @@ public class UIController : MonoBehaviour
 
         //マウスカーソルを表示する
         Cursor.visible = true;
+        SetTaggerUI(false);//鬼のUIを消す
+
     }
 
     public void GoToNextGame()
