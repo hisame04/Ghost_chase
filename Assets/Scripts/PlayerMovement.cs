@@ -8,9 +8,11 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     Vector3 _lastSentPos;
     Quaternion _lastSentRot;
+    private Rigidbody rb;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
         StartCoroutine(SendPosition());
     }
 
@@ -26,14 +28,14 @@ public class PlayerMovement : MonoBehaviour
         moveInput = value.Get<Vector2>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (GameManager.Instance.onGame)
         {
             // 現在の座標に、入力方向 * 速度 * フレーム時間を足す
             // Vector3 movement = new Vector3(moveInput.x, 0, moveInput.y);
             Vector3 movement = transform.right * moveInput.x + transform.forward * moveInput.y;
-            transform.position += movement * speed * Time.deltaTime;
+            rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
         }
     }
 
