@@ -28,7 +28,6 @@ public class StatusController : MonoBehaviour
     {
         if(GameManager.Instance.onGame && this.playerProfile!=null)
         {
-            this.playerProfile = GameSessionData.Instance.GetPlayer(playerId);
             this.isTag = playerProfile.isTag;
         }
     }
