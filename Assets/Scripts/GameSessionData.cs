@@ -161,12 +161,12 @@ public class GameSessionData : MonoBehaviour
         {
             if(GameManager.Instance != null && GameManager.Instance.onGame)//ゲーム中の場合のみ
             {
+                PopMessageController.Instance.PopUpShow("他のプレイヤーがいなくなったのでタイトルに戻ります");
                 NetworkManager.Instance.DisconnectLocal();
                 SceneManager.LoadScene("TitleScene");
                 //マウスカーソルを表示
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
-
             }
         }
     }

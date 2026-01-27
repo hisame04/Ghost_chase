@@ -11,8 +11,7 @@ public class UIController : MonoBehaviour
     public static UIController Instance { get; private set; }
     [SerializeField] TextMeshProUGUI timeCountText;
     [SerializeField] TextMeshProUGUI waitTimeText;
-    [SerializeField] GameObject isTaggerText;
-    [SerializeField] GameObject touchButton;
+    [SerializeField] GameObject taggerPanel;
     [SerializeField] GameObject gameResultUIPanel;
     [SerializeField] GameObject waitGameUIPanel;
     [SerializeField] GameObject onGameUIPanel;
@@ -98,13 +97,11 @@ public class UIController : MonoBehaviour
     {
         if (isTagger)
         {
-            isTaggerText.SetActive(true);
-            touchButton.SetActive(true);
+            taggerPanel.SetActive(true);
         }
         else
         {
-            isTaggerText.SetActive(false);
-            touchButton.SetActive(false);
+            taggerPanel.SetActive(false);
         }
     }
 
