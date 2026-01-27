@@ -12,9 +12,9 @@ using UnityEngine;
 using System.Security.Cryptography;
 
 //*サーバのクラス*//
-public class UdpGameServer
+public class UdpGameServer : IGameServer
 {
-    public Action<string, IPEndPoint> OnDataReceived;
+    public Action<string, IPEndPoint> OnDataReceived{get; set;}
     private UdpClient _udpClient;
     public bool isRunning { get; private set; }
 
@@ -28,7 +28,7 @@ public class UdpGameServer
             var remote = new IPEndPoint(IPAddress.Any, 8000);
             _udpClient = new UdpClient(local);
             isRunning = true;
-            Debug.Log($"[Server] 起動しました Port:{port}");
+            Debug.Log($"[UDPServer] 起動しました Port:{port}");
         }
         catch (Exception ex)
         {
@@ -66,7 +66,7 @@ public class UdpGameServer
 
 
     /*受信したデータの処理*/
-    private void OnRecieve(string data, IPEndPoint remote)//dataはあとで構造体に変更
+    private void OnRecieve(string data, IPEndPoint remote)
     {
         Debug.Log($"[Server]受信{data} from:{remote}");
         OnDataReceived?.Invoke(data, remote);
@@ -113,7 +113,7 @@ public class UdpGameClient : IGameClient
         {
             if (_udpClient != null) return Task.CompletedTask;//接続済なら何もしない
 
-            _udpClient = new UdpClient(0);
+            _udpClient = new UdpClient();
             _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
             _udpClient.Connect(_serverEndPoint);
             _ = ListenMessageAsync();
