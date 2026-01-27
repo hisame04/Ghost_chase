@@ -14,7 +14,7 @@ public interface IGameServer
 {
     Action<string, IPEndPoint> OnDataReceived{get; set;}
     bool isRunning{get;}
-    Task StartServer(int port);
+    Task<bool> StartServer(int port);
     void SendMessage(string message, IPEndPoint remote);
     void Stop();
 

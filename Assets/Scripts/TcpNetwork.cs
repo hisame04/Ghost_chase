@@ -15,14 +15,14 @@ using Unity.VisualScripting;
 //*サーバのクラス*//
 public class TcpGameServer : IGameServer
 {
-    public Action<string, IPEndPoint> OnDataReceived{get; set;}
+    public Action<string, IPEndPoint> OnDataReceived { get; set; }
     private TcpListener _listener;
     public bool isRunning { get; private set; }
 
     private Dictionary<IPEndPoint, TcpClient> _connectedClients = new Dictionary<IPEndPoint, TcpClient>();
 
     /*サーバの立ち上げ*/
-    public async Task StartServer(int port)
+    public async Task<bool> StartServer(int port)
     {
         try
         {
@@ -32,15 +32,35 @@ public class TcpGameServer : IGameServer
             isRunning = true;
             Debug.Log($"[TCPServer] 起動しました Port:{port}");
 
-            while (isRunning)
+            _=AcceptLoop();
+
+            return true;
+        }   
+        catch (Exception ex)
+        {
+            Debug.Log($"{ex.Message}");
+            return false;
+        }
+    }
+
+    //受信処理(ループ)
+    private async Task AcceptLoop()
+    {
+        while (isRunning)
+        {
+            try
             {
                 TcpClient client = await _listener.AcceptTcpClientAsync();
                 _ = HandleClientAsync(client);
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.Log($"{ex.Message}");
+            catch (ObjectDisposedException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                Debug.Log($"[Server] Error:{ex.Message}");
+            }
         }
     }
 

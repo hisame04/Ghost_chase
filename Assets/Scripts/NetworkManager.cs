@@ -361,9 +361,21 @@ public class NetworkManager : MonoBehaviour
     /*部屋作成(サーバ作成)*/
     async Task<bool> CreateRoom(string roomId)
     {
+        serverPort = 8000;
+
+        //サーバの起動
+        bool serverStarted = await SetServer((int)GameSessionData.Instance.selectedProtocol);
+
+        if (!serverStarted)
+        {
+            Debug.Log("ポート8000が使用中です");
+            // PopMessageController.Instance.PopUpShow("ポート8000が使用中です");
+            return false;
+        }
+
+        //firebaseに書き込み
         RoomData data = new RoomData(myLocalIp, myGlobalIp, serverPort);//自分のIPアドレス情報をまとめる
         string json = JsonUtility.ToJson(data);//まとめたIPアドレス情報をjson形式にする
-
         try
         {
             string protocolName = GetProtocolName();
@@ -374,8 +386,6 @@ public class NetworkManager : MonoBehaviour
             await roomRef.SetRawJsonValueAsync(json);
 
             GameSessionData.Instance.roomId = roomId;
-            //サーバの起動
-            SetServer((int)GameSessionData.Instance.selectedProtocol);
 
             return true;
         }
@@ -387,9 +397,11 @@ public class NetworkManager : MonoBehaviour
     }
 
     /*サーバの生成・開始*/
-    private async void SetServer(int protcol)
+    private async Task<bool> SetServer(int protcol)
     {
         GameSessionData.ProtocolType type = (GameSessionData.ProtocolType)protcol;
+        bool isSuccess = false;
+
         if (type == GameSessionData.ProtocolType.UDP)
         {
             _server = new UdpGameServer();
@@ -400,7 +412,7 @@ public class NetworkManager : MonoBehaviour
                 _hostHandler.Handle(data, remote);
             };
 
-            await _server.StartServer(serverPort);
+            isSuccess = await _server.StartServer(serverPort);
             Debug.Log("Create UDPServer");
         }
         else if (type == GameSessionData.ProtocolType.TCP)
@@ -411,9 +423,16 @@ public class NetworkManager : MonoBehaviour
                 _hostHandler.Handle(data,remote);
             };
 
-            await _server.StartServer(serverPort);
+            isSuccess = await _server.StartServer(serverPort);
             Debug.Log("Create TCPServer");
         }
+
+        if (!isSuccess)
+        {
+            _server = null;
+        }
+
+        return isSuccess;
     }
 
     /*クライアントの選択・生成*/

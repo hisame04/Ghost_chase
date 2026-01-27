@@ -19,7 +19,7 @@ public class UdpGameServer : IGameServer
     public bool isRunning { get; private set; }
 
     /*サーバの立ち上げ*/
-    public async Task StartServer(int port)
+    public async Task<bool> StartServer(int port)
     {
         try
         {
@@ -29,12 +29,21 @@ public class UdpGameServer : IGameServer
             _udpClient = new UdpClient(local);
             isRunning = true;
             Debug.Log($"[UDPServer] 起動しました Port:{port}");
+
+            _= ReceiveLoop();
+
+            return true;
         }
         catch (Exception ex)
         {
             Debug.Log($"{ex.Message}");
+            return false;
         }
+    }
 
+    /*受信の待機ループ*/
+    private async Task ReceiveLoop()
+    {
         while (isRunning)
         {
             try
