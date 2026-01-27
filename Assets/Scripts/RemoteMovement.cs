@@ -27,6 +27,12 @@ public class RemoteMovement : MonoBehaviour
     void Update()
     {
         this.transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * _smoothSpeed);
+
+        if (targetRot.w == 0 && targetRot.x == 0 && targetRot.y == 0 && targetRot.z == 0)
+        {
+            return;
+        }
+
         this.transform.rotation = Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime * _smoothSpeed);
     }
 }
