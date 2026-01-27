@@ -5842,7 +5842,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4275103788663954215, guid: 5bf5eafe6676f4330a2e44ae71096e94, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6257,7 +6257,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timeCountText: {fileID: 1600891241}
   waitTimeText: {fileID: 937675575}
-  taggerPanel: {fileID: 0}
+  taggerPanel: {fileID: 2132287756}
   gameResultUIPanel: {fileID: 410594015}
   waitGameUIPanel: {fileID: 1400215735}
   onGameUIPanel: {fileID: 362724088}
