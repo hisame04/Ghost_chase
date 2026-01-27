@@ -9,6 +9,17 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+
+public interface IGameServer
+{
+    Action<string, IPEndPoint> OnDataReceived{get; set;}
+    bool isRunning{get;}
+    Task StartServer(int port);
+    void SendMessage(string message, IPEndPoint remote);
+    void Stop();
+
+}
+
 public interface IGameClient
 {
     Action<string> OnDataReceived { get; set; }
@@ -16,5 +27,6 @@ public interface IGameClient
     void SendMessage(string message);
     void Close();
     IPEndPoint ClientUseIP();
-    // ConcurrentQueue<string> ReceiveQueue { get; }
 }
+
+

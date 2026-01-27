@@ -32,8 +32,7 @@ public class NetworkManager : MonoBehaviour
     private int limit_roomIdLength = 4;
 
     //ソケット通信用
-    private UdpGameServer _udpServer;
-    //private TcpGameServer _tcpServer; //【TCP導入後挿入箇所】
+    private IGameServer _server;
     private IGameClient _client;
     DatabaseReference reference;
 
@@ -116,7 +115,7 @@ public class NetworkManager : MonoBehaviour
     ////*Update*////
     void Update()
     {
-        if(_client == null && _udpServer == null)//【TCP追加時】tcpServer==nullを追加
+        if(_client == null && _server == null)
         {
             while (_packetQueue.TryDequeue(out _)) { }
             return;
@@ -142,7 +141,6 @@ public class NetworkManager : MonoBehaviour
     /*Unityのオブジェクト破壊時の処理*/
     void OnDestroy()
     {
-        // 「全てのタスク中止！」という命令を出す
         _cts?.Cancel();
         _cts?.Dispose();
 
@@ -243,7 +241,6 @@ public class NetworkManager : MonoBehaviour
             var connectData = new ConnectRequestData { playerName = GameSessionData.Instance.myName };
             SendPacketToHost(NetworkCommand.ConnectRequest, connectData);
 
-
             //部屋番号をGameSessionDataに登録
             GameSessionData.Instance.SetRoomId(roomId);
 
@@ -283,6 +280,7 @@ public class NetworkManager : MonoBehaviour
             //自分自身に接続要求
             var connectData = new ConnectRequestData { playerName = GameSessionData.Instance.myName };
             SendPacketToHost(NetworkCommand.ConnectRequest, connectData);
+            Debug.Log("サーバのクライアントが自身に接続完了");
             return true;
         }
         catch (Exception ex)
@@ -394,22 +392,26 @@ public class NetworkManager : MonoBehaviour
         GameSessionData.ProtocolType type = (GameSessionData.ProtocolType)protcol;
         if (type == GameSessionData.ProtocolType.UDP)
         {
-            _udpServer = new UdpGameServer();
+            _server = new UdpGameServer();
 
             //OnReceiveで受信したらHostPacketHandlerのHandleを呼び出す
-            _udpServer.OnDataReceived += (data, remote) =>
+            _server.OnDataReceived += (data, remote) =>
             {
                 _hostHandler.Handle(data, remote);
             };
 
-            await _udpServer.StartServer(serverPort);
+            await _server.StartServer(serverPort);
             Debug.Log("Create UDPServer");
         }
         else if (type == GameSessionData.ProtocolType.TCP)
         {
-            //_tcpServer = new TcpGameServer(); //【TCP導入後挿入箇所】
-            //_tcpServer.OnDataReceived += (data,remote) =>{_hostHandler.Handle(data,remote)}
-            //await _tcpServer.StartServer(serverPort); //【TCP導入後挿入箇所】
+            _server = new TcpGameServer();
+            _server.OnDataReceived += (data,remote) =>
+            {
+                _hostHandler.Handle(data,remote);
+            };
+
+            await _server.StartServer(serverPort);
             Debug.Log("Create TCPServer");
         }
     }
@@ -432,7 +434,14 @@ public class NetworkManager : MonoBehaviour
         }
         else if (type == GameSessionData.ProtocolType.TCP)
         {
-            //_client = new TcpGameClient(); //【TCP導入後挿入箇所】
+            _client = new TcpGameClient();
+
+            //OnReceiveで受信したらClientPacketHandlerのHandleを呼び出す
+            _client.OnDataReceived += (data) =>
+            {
+                // _clientHandler.Handle(data);
+                _packetQueue.Enqueue(data);
+            };
         }
     }
 
@@ -633,7 +642,7 @@ public class NetworkManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
-            if(_udpServer != null && ServerState.MasterPlayers.Count > 0)//【TCP実装時】tcpServerも追加
+            if(_server != null && ServerState.MasterPlayers.Count > 0)
             {
                 SendAllPlayerPos();
             }
@@ -646,7 +655,7 @@ public class NetworkManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(1.0f);
-            if(_udpServer != null && ServerState.MasterPlayers.Count > 0 && GameManager.Instance.onGame)//【TCP実装時】tcpServerも追加
+            if(_server != null && ServerState.MasterPlayers.Count > 0 && GameManager.Instance.onGame)
             {
                 SendGameTime();
             }
@@ -722,7 +731,7 @@ public class NetworkManager : MonoBehaviour
     {
         while (true)
         {
-            if(_udpServer != null && GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
+            if(_server != null && GameSessionData.Instance.selectedRole == GameSessionData.RoleType.Host)
             {
                 var data = new PingData{id = GameSessionData.Instance.myIDNum};
                 BroadPacketToAllClient(NetworkCommand.Ping, data);
@@ -805,10 +814,10 @@ public class NetworkManager : MonoBehaviour
         }
 
         //サーバー機能も動いていれば閉じる（ホストの場合）
-        if (_udpServer != null)
+        if (_server != null)
         {
-            _udpServer.Stop();
-            _udpServer = null;
+            _server.Stop();
+            _server = null;
             ServerState.ResetAllStates();
         }
 
@@ -920,21 +929,9 @@ public class NetworkManager : MonoBehaviour
         //パケットをJSON化して送信
         string finalJson = JsonUtility.ToJson(packet);
 
-        //UDPを選択した場合
-        if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.UDP)
+        if (_server != null)
         {
-            if (_udpServer != null)
-            {
-                _udpServer.SendMessage(finalJson, remote);
-            }
-        }
-        //TCPを選択した場合
-        else if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.TCP)
-        {
-            // if(_tcpServer != null)
-            // {
-            //     _tcpServer.SendMessage(finalJson, remote);
-            // }
+            _server.SendMessage(finalJson, remote);
         }
     }
 
@@ -951,28 +948,13 @@ public class NetworkManager : MonoBehaviour
         //パケットをJSON化して送信
         string finalJson = JsonUtility.ToJson(packet);
 
-        //UDPを選択した場合
-        if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.UDP)
+        if (_server != null)
         {
-            if (_udpServer != null)
+            foreach(var player in ServerState.MasterPlayers)
             {
-                foreach(var player in ServerState.MasterPlayers)
-                {
-                    _udpServer.SendMessage(finalJson, player.Value.clientIP);
-                    Debug.Log($"一斉送信：to {player.Value.clientIP}");
-                }
+                _server.SendMessage(finalJson, player.Value.clientIP);
+                Debug.Log($"一斉送信：to {player.Value.clientIP}");
             }
-        }
-        //TCPを選択した場合
-        else if (GameSessionData.Instance.selectedProtocol == GameSessionData.ProtocolType.TCP)
-        {
-            // if(_tcpServer != null)
-            // {
-                // foreach(var player in ServerState.MasterPlayers)
-                // {
-                //     _tcpServer.SendMessage(finalJson, remote);
-                // }
-            // }
         }
     }
 }
