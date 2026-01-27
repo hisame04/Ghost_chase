@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 public class TitleUIController : MonoBehaviour
 {
@@ -70,10 +71,10 @@ public class TitleUIController : MonoBehaviour
 
         nextAvatarButton.onClick.AddListener(selectAvatarManager.NextAvatar);//アバター変更ボタン(次のインデックスへ)
         prevAvatarButton.onClick.AddListener(selectAvatarManager.PrevAvatar);//アバター変更ボタン(前のインデックスへ)
-        for(int i = 0;i<colorButtons.Length; i++)//色変更ボタン
+        for (int i = 0; i < colorButtons.Length; i++)//色変更ボタン
         {
             int index = i;
-            colorButtons[index].onClick.AddListener(()=>selectAvatarManager.ChangeColor(index));
+            colorButtons[index].onClick.AddListener(() => selectAvatarManager.ChangeColor(index));
         }
 
         backToNamePanelButton.onClick.AddListener(OnBackToNamePanel);//名前入力画面に戻るボタン
@@ -87,7 +88,7 @@ public class TitleUIController : MonoBehaviour
 
         NetworkManager.Instance.OnClientAllReady += UpdateStartButtonState;//参加者の更新時
         NetworkManager.Instance.OnRemovePlayer += RemovePlayer;//プレイヤーの切断時
-        
+
 
         for (int i = 0; i < GameSessionData.Instance.playerLimitNum; i++)
         {
@@ -113,12 +114,18 @@ public class TitleUIController : MonoBehaviour
     /*プレイヤー名決定*/
     void OnDecidePlayerName()
     {
-        if(playerNameInput.text.Trim().Length > 0){
+        if (playerNameInput.text.Trim().Length > 0)
+        {
             SetButtonsInteractable(false);
             GameSessionData.Instance.SetPlayerName(playerNameInput.text);//GameSessionDataに入力した名前を登録
             myPlayerNameText.text = GameSessionData.Instance.myName;//アバター選択画面の自分の名前を表示
             ProtcolSelectPanelSet();
             SetButtonsInteractable(true);
+        }
+        else
+        {
+            PopMessageController.Instance.PopUpShow("名前を入力してください");
+            Debug.Log("名前欄が空欄です");
         }
     }
 
@@ -148,6 +155,7 @@ public class TitleUIController : MonoBehaviour
         if (roomId == null)
         {
             Debug.Log("部屋作成失敗");
+            PopMessageController.Instance.PopUpShow("部屋作成失敗");
             SetButtonsInteractable(true);
             return;
         }
@@ -169,25 +177,47 @@ public class TitleUIController : MonoBehaviour
     async void OnDecideRoomId()
     {
         SetButtonsInteractable(false);
-        string roomId = await NetworkManager.Instance.OnDecideRoomId(roomIdInput.text);
-        if (roomId == null)
+        try
         {
-            roomIdInput.text = "";
+            if (roomIdInput.text.Length != 4)
+            {
+                PopMessageController.Instance.PopUpShow("4文字の数字で入力してください");
+                SetButtonsInteractable(true);
+                return;
+            }
 
-            // UIを元に戻す（部屋番号入力画面のまま）
-            RoomConnectPanelSet();
+            string roomId = await NetworkManager.Instance.OnDecideRoomId(roomIdInput.text);
 
-            //【UI】ボタンを再度押せるように戻す
-            roomIdDecideButton.interactable = true;
+            if (roomId == null)
+            {
+                PopMessageController.Instance.PopUpShow("部屋が見つかりませんでした...");
+                roomIdInput.text = "";
 
-            //【UI】カーソルを入力欄に戻してあげる（PC操作の場合便利）
-            await Task.Delay(10);
-            roomIdInput.ActivateInputField();
-            roomIdInput.Select();
+                // UIを元に戻す（部屋番号入力画面のまま）
+                RoomConnectPanelSet();
 
-            SetButtonsInteractable(true);
-            return;
+                //【UI】ボタンを再度押せるように戻す
+                roomIdDecideButton.interactable = true;
+
+                //【UI】カーソルを入力欄に戻してあげる（PC操作の場合便利）
+                await Task.Delay(10);
+                roomIdInput.ActivateInputField();
+                roomIdInput.Select();
+
+                SetButtonsInteractable(true);
+                return;
+            }
         }
+        catch (Exception ex)
+        {
+            Debug.Log($"予期せぬエラーが発生しました:{ex.Message}");
+            PopMessageController.Instance.PopUpShow("エラーが発生しました");
+        }
+        finally
+        {
+            SetButtonsInteractable(true);
+        }
+
     }
 
     /*準備完了が押されたとき*/
@@ -240,6 +270,7 @@ public class TitleUIController : MonoBehaviour
     void OnJoinRoomFailed(string reason)
     {
         Debug.Log($"接続失敗: {reason}");
+        PopMessageController.Instance.PopUpShow("部屋への参加に失敗しました...");
 
         // 入力欄をクリア
         roomIdInput.text = "";
@@ -280,7 +311,7 @@ public class TitleUIController : MonoBehaviour
             i += 1;
         }
 
-        for(int j = i; j < memberNameText.Length; j++)
+        for (int j = i; j < memberNameText.Length; j++)
         {
             memberNameText[j].gameObject.SetActive(false);
             memberReadyImage[j].gameObject.SetActive(false);
@@ -294,7 +325,7 @@ public class TitleUIController : MonoBehaviour
     /*ゲーム開始ボタンの有効化・無効化*/
     void UpdateStartButtonState(bool isAllReady)
     {
-        if(gameStartButton != null)
+        if (gameStartButton != null)
         {
             GameStartButtonInteractable(isAllReady);
             Debug.Log($"[UI]全員準備完了{isAllReady}");
@@ -304,7 +335,7 @@ public class TitleUIController : MonoBehaviour
     /*プレイヤー切断時のUIの削除*/
     void RemovePlayer(int id)
     {
-        if(GameManager.Instance == null || !GameManager.Instance.onGame)
+        if (GameManager.Instance == null || !GameManager.Instance.onGame)
         {
             OnMemberListUpdate();
         }
@@ -399,7 +430,7 @@ public class TitleUIController : MonoBehaviour
     {
         nextAvatarButton.interactable = state;
         prevAvatarButton.interactable = state;
-        foreach(Button colorButton in colorButtons)
+        foreach (Button colorButton in colorButtons)
         {
             colorButton.interactable = state;
         }

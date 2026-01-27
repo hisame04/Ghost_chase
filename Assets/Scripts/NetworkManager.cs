@@ -700,6 +700,7 @@ public class NetworkManager : MonoBehaviour
 
             if(Time.time-lastHostActiveTime > thresholdTime)
             {
+                PopMessageController.Instance.PopUpShow("ホストが切断したのでタイトルに戻ります");
                 NetworkManager.Instance.DisconnectLocal();
                 SceneManager.LoadScene("TitleScene");
 
