@@ -16,19 +16,27 @@ public class TitleUIController : MonoBehaviour
     public GameObject roomConnectPanel_client;
     public GameObject selectAvatarPanel;
 
+    //名前決定ボタン
     public Button nameDecideButton;//名前決定時ボタン
+    //プロトコル選択のボタン
     public Button udpButton;//UDP選択用ボタン
     public Button tcpButton;//TCP選択用ボタン
+    //ロール選択のボタン
     public Button hostButton;//部屋を作成するのを選択する(ホスト)用ボタン
     public Button clientButton;//部屋に入るのを選択する(クライアント用)ボタン
+    //部屋番号入力決定のボタン
     public Button roomIdDecideButton;//部屋番号を指定して決定するボタン
+
+    //アバター選択画面のボタン
     public Button gameStartButton;//ゲーム開始ボタン
     public Button readyButton;//準備完了ボタン
 
+    //アバター変更のボタン
     public Button nextAvatarButton;//次のアバターへのボタン
     public Button prevAvatarButton;//前のアバターへのボタン
     public Button[] colorButtons;//色変更のボタン
 
+    //前に戻るボタン
     public Button backToNamePanelButton;//名前入力画面に戻るボタン
     public Button backToProtcolPanelButton;//プロトコル選択画面に戻るボタン
     public Button backToRolePanelButton;//ロール選択画面に戻るボタン
@@ -49,6 +57,7 @@ public class TitleUIController : MonoBehaviour
     void Start()
     {
         PlayerNamePanelSet();
+
         //【UI】ボタンの設定
         nameDecideButton.onClick.AddListener(OnDecidePlayerName);//名前決定時ボタン
         udpButton.onClick.AddListener(OnSelectUDP);//UDP選択用ボタン
@@ -58,6 +67,14 @@ public class TitleUIController : MonoBehaviour
         roomIdDecideButton.onClick.AddListener(OnDecideRoomId);//部屋番号を指定して決定するボタン
         readyButton.onClick.AddListener(OnReady);//準備完了ボタン
         gameStartButton.onClick.AddListener(OnGameStart);//ゲーム開始ボタン
+
+        nextAvatarButton.onClick.AddListener(selectAvatarManager.NextAvatar);//アバター変更ボタン(次のインデックスへ)
+        prevAvatarButton.onClick.AddListener(selectAvatarManager.PrevAvatar);//アバター変更ボタン(前のインデックスへ)
+        for(int i = 0;i<colorButtons.Length; i++)//色変更ボタン
+        {
+            int index = i;
+            colorButtons[index].onClick.AddListener(()=>selectAvatarManager.ChangeColor(index));
+        }
 
         backToNamePanelButton.onClick.AddListener(OnBackToNamePanel);//名前入力画面に戻るボタン
         backToProtcolPanelButton.onClick.AddListener(OnBackToProtcolPanel);//プロトコル選択画面に戻るボタン
