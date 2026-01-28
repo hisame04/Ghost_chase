@@ -6,6 +6,7 @@ public class PlayerTouch : MonoBehaviour
 {
     StatusController statusController;
     int playerId;
+    private StatusController currentTargetStatus = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -16,7 +17,14 @@ public class PlayerTouch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            if(statusController != null &&statusController.isTag && currentTargetStatus != null)
+            {
+                TouchReportData touchData = new TouchReportData{playerId = this.playerId, collisionId = currentTargetStatus.playerId};
+                NetworkManager.Instance.SendPacketToHost(NetworkCommand.Touch, touchData);
+            }
+        }
     }
 
     void OnCollisionStay(Collision collision)
@@ -24,26 +32,21 @@ public class PlayerTouch : MonoBehaviour
         if(collision.gameObject.tag == "Player")
         {
             Debug.Log("touchTag");
-            StatusController collisionStatusController = collision.gameObject.GetComponent<StatusController>();
-            if(collisionStatusController == null)
+            StatusController target = collision.gameObject.GetComponent<StatusController>();
+            if(target != null)
             {
-                Debug.Log("[PlayerTouch] タッチ相手のStatusControllerが見つかりません");
-                return;
+                currentTargetStatus = target;
             }
-            if(statusController == null)
-            {
-                Debug.Log($"[PlayerTouch] 自身のStatusControllerが見つかりません");
-                return;
-            }
+        }
+    }
 
-            
-            if(statusController.isTag){
-            if (Input.GetMouseButtonDown(0))//実際に遊んで操作感悪かったら消す
+    void OnCollisionExit(Collision collision)
+    {
+        if(collision.gameObject.tag == "Player")
+        {
+            if(currentTargetStatus != null && collision.gameObject == currentTargetStatus.gameObject)
             {
-                TouchReportData touchData = new TouchReportData{playerId = this.playerId,collisionId = collisionStatusController.playerId};
-                NetworkManager.Instance.SendPacketToHost(NetworkCommand.Touch,touchData);
-                Debug.Log($"[touch]id:{collisionStatusController.playerId}にタッチ ホストに送信");
-            }
+                currentTargetStatus = null;
             }
         }
     }
