@@ -212,6 +212,11 @@ public class TitleUIController : MonoBehaviour
         {
             Debug.Log($"予期せぬエラーが発生しました:{ex.Message}");
             PopMessageController.Instance.PopUpShow("エラーが発生しました");
+
+            roomIdInput.text = "";
+            RoomConnectPanelSet();
+            roomIdDecideButton.interactable = true;
+            SetButtonsInteractable(true);
         }
         finally
         {

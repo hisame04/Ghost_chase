@@ -196,26 +196,37 @@ public class TcpGameClient : IGameClient
     private IPEndPoint _serverEndPoint;
 
     /*サーバへの接続*/
-    public Task ConnectAsync(string serverIp, int serverPort)
+    public async Task ConnectAsync(string serverIp, int serverPort)
     {
         try
         {
-            if (_tcpClient != null) return Task.CompletedTask;//接続済なら何もしない
+            if (_tcpClient != null) return;//接続済なら何もしない
 
             _tcpClient = new TcpClient();
             _serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
-            _tcpClient.Connect(_serverEndPoint);
+
+            var connectTask = _tcpClient.ConnectAsync(_serverEndPoint.Address, _serverEndPoint.Port);
+            var timeoutTask = Task.Delay(3000);
+
+            var completedTask = await Task.WhenAny(connectTask,timeoutTask);
+
+            if(completedTask == timeoutTask)
+            {
+                _tcpClient.Close();
+                _tcpClient = null;
+            }
+            await connectTask;
+
             _stream = _tcpClient.GetStream();
             _ = ListenMessageAsync();
 
             Debug.Log($"[Client] サーバに接続しました{((IPEndPoint)_tcpClient.Client.LocalEndPoint).Port}");
-
-            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
+            _tcpClient?.Close();
+            _tcpClient = null;
             Debug.LogError($"[Client Error] {ex.Message}");
-            return Task.CompletedTask;
         }
     }
 

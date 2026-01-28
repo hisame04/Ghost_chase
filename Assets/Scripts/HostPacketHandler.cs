@@ -5,8 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Net;
-using System.Xml.Serialization;
-using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 using System.Data;
 using TMPro;
 

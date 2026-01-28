@@ -134,7 +134,7 @@ public class UdpGameClient : IGameClient
         catch (Exception ex)
         {
             Debug.LogError($"[Client Error] {ex.Message}");
-            return Task.CompletedTask;
+            throw;
         }
     }
 
