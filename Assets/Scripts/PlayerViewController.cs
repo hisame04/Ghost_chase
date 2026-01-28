@@ -5,22 +5,27 @@ using UnityEngine;
 public class PlayerViewController : MonoBehaviour
 {
     [SerializeField] AvatarData avatarData;
-    public PlayerProfile myProfile;
+    public int myId;
+    int myColorIdx;
+    PlayerProfile myProfile;
 
     //変更するマテリアルの保存用変数
     Material bodyBaseMaterial;
     Material earsBaseMaterial;
 
-    void Awake()
+    public void Init()
     {
+        myId = GameSessionData.Instance.myIDNum;
+        myProfile = GameSessionData.Instance.AllPlayers[myId];
+        myColorIdx = GameSessionData.Instance.myColorIndex;
         FindMaterial();//最初に子オブジェクトから変更するマテリアルを取得
     }
 
     /*見た目の初期設定 (SpawnPlayerControllerから呼び出し)*/
     public void Setup()
     {
-        Debug.Log($"PlayerViewController Setup /id:{myProfile.id} color:{myProfile.colorIdx}");
-        AvatarBaseColorSet(myProfile.colorIdx,this.gameObject);//アバターのベース色を初期設定
+        Debug.Log($"PlayerViewController Setup /id:{myId} color:{myColorIdx}");
+        AvatarBaseColorSet(myColorIdx,this.gameObject);//アバターのベース色を初期設定
     }
 
     /*変更したいマテリアルの取得*/

@@ -27,6 +27,10 @@ public class SelectAvatarManager : MonoBehaviour
         emissionIntensities = avatarData.emissionIntensity;
         currentAvatarIndex=0;
         currentColorIndex=0;
+    }
+
+    public void SetFirstAvatar()
+    {
         ChangeAvatar(currentAvatarIndex);
     }
 
@@ -51,6 +55,8 @@ public class SelectAvatarManager : MonoBehaviour
             existAvatar.transform.rotation = Quaternion.Euler(spawnAngle);
             ChangeColor(currentColorIndex);
         }
+
+        GameSessionData.Instance.SetMyAvatarIdx(currentAvatarIndex);
     }
 
     // --- 色の切り替え --- 
@@ -71,6 +77,8 @@ public class SelectAvatarManager : MonoBehaviour
         Debug.Log(emissionIntensity);
         
         currentColorIndex = selectIndex;
+
+        GameSessionData.Instance.SetMyColorIdx(currentColorIndex);
     }
 
     

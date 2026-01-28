@@ -4,23 +4,42 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] float limitTime = 60f;
-    [SerializeField] float waitStartTime = 3f;
+    public static GameManager Instance { get; private set; }
+
+    private float limitTime;
     [SerializeField] float timeCount;
     public bool onGame;
     public bool onWait;
-    [SerializeField] int playerSelf = 0;
-    [SerializeField] int firstTagger = 1;
-    [SerializeField] int whoTagger;
     [SerializeField] GameObject[] players;
     [SerializeField] UIController uIController;
-    // Start is called before the first frame update
+    private PlayerProfile myProfile;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            //インスタンスを自身に設定
+            Instance = this;
+        }
+        else
+        {
+            //重複防止
+            Destroy(gameObject);
+        }
+    }
+
     void Start()
     {
-        whoTagger = firstTagger;
-        timeCount = waitStartTime;
-        onWait = true;
+        limitTime = GameSessionData.Instance.gameTimeLimit;
+
+        timeCount = GameSessionData.Instance.waitStartTime;
+        onWait = false;
         onGame = false;
+        myProfile = GameSessionData.Instance.GetPlayer(GameSessionData.Instance.myIDNum);
+
+        NetworkManager.Instance.OnStartCountDown += SetCountWaitTime;
+
+        SendSceneLoaded();
     }
 
     // Update is called once per frame
@@ -34,6 +53,7 @@ public class GameManager : MonoBehaviour
                 onGame = true;
                 timeCount = limitTime;
                 uIController.SetOnGameUI();
+                Debug.Log("[client]　ゲームスタート");
             }
 
             timeCount -= Time.deltaTime;
@@ -46,30 +66,21 @@ public class GameManager : MonoBehaviour
                 if (timeCount < 0)
                 {
                     onGame = false;
+                    uIController.SetGameResultUI(myProfile.isTag);
                 }
 
                 timeCount -= Time.deltaTime;
-                uIController.SetPlayerUI(players);
                 uIController.SetTimeCountText(timeCount);
-                PlayerSelfIsTagger();
-
-                CheckTaggerError();
-            }
-            else
-            {
-                uIController.SetGameResultUI(PlayerSelfIsTagger());
             }
         }
 
     }
 
-    bool PlayerSelfIsTagger()
+    //カウントダウン開始フラグのセット
+    public void SetCountWaitTime()
     {
-        PlayerStatusController playerStatusController = players[playerSelf].GetComponent<PlayerStatusController>();
-        bool isTagger = playerStatusController.isTagger;
-
-        uIController.SetTaggerUI(isTagger);
-        return isTagger;
+        onWait = true;
+        Debug.Log("[client] カウントダウンスタート");
     }
 
     void CheckTaggerError()
@@ -77,9 +88,9 @@ public class GameManager : MonoBehaviour
         int count = 0;
         foreach (GameObject player in players)
         {
-            PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-            bool isTagger = playerStatusController.isTagger;
-            if (isTagger)
+            StatusController statusController = player.GetComponent<StatusController>();
+            bool isTag = statusController.isTag;
+            if (isTag)
             {
                 count += 1;
             }
@@ -90,8 +101,8 @@ public class GameManager : MonoBehaviour
             count = 0;
             foreach (GameObject player in players)
             {
-                PlayerStatusController playerStatusController = player.GetComponent<PlayerStatusController>();
-                bool isTagger = playerStatusController.isTagger;
+                StatusController statusController = player.GetComponent<StatusController>();
+                bool isTagger = statusController.isTag;
                 if (isTagger)
                 {
                     if (count == 0)
@@ -100,10 +111,33 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        playerStatusController.isTagger = false;
+                        statusController.isTag = false;
                     }
                 }
             }
+        }
+    }
+
+    /*シーン読み込み完了を送るためのメソッド*/
+    void SendSceneLoaded()
+    {
+        var data = new LoadSuccessData{id = GameSessionData.Instance.myIDNum, loadScene = "GameScene"};
+        NetworkManager.Instance.SendPacketToHost(NetworkCommand.LoadSuccess,data);
+        Debug.Log("[Client] シーン遷移完了通知の送信");
+    }
+
+    /*ホストが時間送信時に時間取得のために呼び出すメソッド*/
+    public float GetCurrentTime()
+    {
+        return timeCount;
+    }
+
+    /*ホストから受信した時間と合わせるためのメソッド*/
+    public void RemainTime(float hostTime)
+    {
+        if(hostTime > 0 && Mathf.Abs(timeCount -hostTime) > 0.5f)
+        {
+            timeCount = hostTime;
         }
     }
 }

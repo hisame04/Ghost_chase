@@ -435,8 +435,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8312229154283031841}
-  - component: {fileID: 3152073018728386459}
+  - component: {fileID: 3904892890277938355}
   - component: {fileID: 6235914883985809784}
+  - component: {fileID: 819866016017823054}
   - component: {fileID: -6133750747285990325}
   - component: {fileID: 5983939734919060659}
   - component: {fileID: 3385048422007907935}
@@ -469,7 +470,7 @@ Transform:
   - {fileID: 5928289853742271832}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3152073018728386459
+--- !u!114 &3904892890277938355
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -481,8 +482,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01e76b7548eac46b7b90e8056bd7d6f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
-  isTagger: 0
+  isTag: 0
+  playerId: 0
+  playerProfile:
+    id: 0
+    playerObject: {fileID: 0}
+    firstSpawnPos: {x: 0, y: 0, z: 0}
+    name: 
+    avatarIdx: 0
+    colorIdx: 0
+    isTag: 0
+    isReady: 0
+    isConnectAlive: 0
+    currentPos: {x: 0, y: 0, z: 0}
+    currentRot: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &6235914883985809784
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,7 +509,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   avatarData: {fileID: 11400000, guid: d21e8bf54c4c3404d9a4293692c177f4, type: 2}
-  myProfile:
+  playerId: 0
+  playerProfile:
     id: 0
     playerObject: {fileID: 0}
     firstSpawnPos: {x: 0, y: 0, z: 0}
@@ -504,7 +518,22 @@ MonoBehaviour:
     avatarIdx: 0
     colorIdx: 0
     isTag: 0
+    isReady: 0
     isConnectAlive: 0
+    currentPos: {x: 0, y: 0, z: 0}
+    currentRot: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &819866016017823054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3418778431940447252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a722857771c45e98e3eba75582ab25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!54 &-6133750747285990325
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -529,9 +558,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!136 &5983939734919060659
 CapsuleCollider:
   m_ObjectHideFlags: 0
