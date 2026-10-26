@@ -5,7 +5,10 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed = 5f;
+    [SerializeField] private float tagSpeed = 5.5f;
+    [SerializeField] private float normalSpeed = 5f;
     private Vector2 moveInput;
+    private StatusController statusController;
     Vector3 _lastSentPos;
     Quaternion _lastSentRot;
     private Rigidbody rb;
@@ -13,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        statusController = GetComponent<StatusController>();
         StartCoroutine(SendPosition());
     }
 
@@ -30,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        speed = statusController.isTag ? tagSpeed : normalSpeed;
         if (GameManager.Instance.onGame)
         {
             // 現在の座標に、入力方向 * 速度 * フレーム時間を足す
